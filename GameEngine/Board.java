@@ -104,8 +104,9 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 						pieceHeld = getPieceIdFromSquare(i);
 					}
 					if(pieceHeld != -1){
-						removePieceFromSquare(pieceHeldFrom);
+						removePieceFromSquare(pieceHeldFrom, pieceHeld);
 						pieceHeldMoves = calculateMoves(pieceHeld, pieceHeldFrom);
+						System.out.println(pieceHeldFrom);
 					}
 				}
 			}
@@ -113,6 +114,8 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	}
 
 	public void mouseReleased(MouseEvent e){
+		System.out.println(pieceHeldFrom);
+
 		mouseDown = false;
 		int clickPosX = e.getX();
 		int clickPosY = e.getY();
@@ -124,15 +127,16 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 				if(pieceHeldMoves[i] == true){
 					if(pieceHeld < 6){ //isblack
 						if(bitBoard[0][i] == false && bitBoard[6][i] == true) {
-							removePieceFromSquare(i);
+							removePieceFromSquare(i, pieceHeld);
 						}
 					} else { //iswhite
 						if(bitBoard[6][i] == false && bitBoard[0][i] == true) {
-							removePieceFromSquare(i);
+							removePieceFromSquare(i, pieceHeld);
 						}
 					}
 					addPieceToSquare(pieceHeld, i);
 				} else {
+					System.out.println(pieceHeldFrom);
 					addPieceToSquare(pieceHeld, pieceHeldFrom);
 				}
 			}
@@ -152,7 +156,9 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 		boolean[] result = new boolean[64];
 
 		int pieceType = (pieceId>5)? (pieceId-6) : pieceId;
-		if(pieceType == 1){
+		if(pieceType == 0){
+			result = calculateKingMoves(pieceId, square);
+		} else if(pieceType == 1){
 			result = calculateRookMoves(pieceId, square);
 		} else if(pieceType == 2){
 			result = calculateKnightMoves(pieceId, square);
@@ -174,11 +180,14 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 		int x = square%8;
 		int y = (int)(square/8);
 
+
 		for(int i = -1; i < 2; i++){
-			for(int j = -1; j < 2; i++){
+			for(int j = -1; j < 2; j++){
 				if(i != 0 && j != 0) {
-					if(x + i > 0 && x + i < 8 && y + j > 0 && y + j < 8 && !bitBoard[color][square + i + 8*j]){
-						result[square + i + 8*j] = true;
+					if(x + i > 0 && x + i < 8 && y + j > 0 && y + j < 8){
+						if(!bitBoard[color][square + i + 8*j]){
+							result[square + i + 8*j] = true;
+						}
 					}
 				}
 			}
@@ -328,8 +337,7 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 		g.drawImage(pieceImages[6], 2+(whKing%8)*64, 2+(int)(whKing/8)*64, this);
 	}
 
-	public void removePieceFromSquare(int square){
-		int pieceId = getPieceIdFromSquare(square);
+	public void removePieceFromSquare(int square, int pieceId){
 		if(square >= 64) {
 			System.exit(0);
 		}
@@ -351,7 +359,12 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 
 	public void addPieceToSquare(int pieceId, int square){
 		if(!bitBoard[pieceId][square]){
-			if(pieceId > 6){
+			if(pieceId == 6){
+				whKing = square;
+			} else if(pieceId == 0){
+				blKing = square;
+			}
+			if(pieceId >= 6){
 				bitBoard[6][square] = true;
 			} else {
 				bitBoard[0][square] = true;
