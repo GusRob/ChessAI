@@ -15,7 +15,8 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	Image lightSq = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/light_sq.png");
 	Image moveDot = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/brown_dot.png");
 	Image[] pieceImages = new Image[12];
-	boolean mouseDown = false;
+	boolean isMouseDown = false;
+	boolean isWhiteTurn = true;
 
 	// stores all information about game world
 	// in order of arrays - Black Pieces; rooks; knights; bishops; queens; pawns; White Pieces; same order
@@ -59,7 +60,6 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 
 	public void paint(Graphics g){
 		//draws the board squares then pieces every time the game world is updated
-		g.setColor(Color.GREEN);
 		for(int i = 1; i<8; i+=2){
 			for(int j = 1; j<8; j+=2){
 				g.drawImage(lightSq, 64*i, 64*j, Color.BLACK, this);
@@ -78,7 +78,9 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 			}
 			g.drawImage(pieceImages[pieceHeld], mx, my, this);
 		}
-
+		g.setColor(Color.BLACK);
+		g.setFont(new Font("Arial", Font.BOLD, 30));
+		g.drawString(isWhiteTurn ? "White's Turn" : "Black's Turn", 10, 550);
 	}
 
 	//overridden mouseEvent methods
@@ -86,8 +88,8 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	public void mouseEntered(MouseEvent e){}
 	public void mouseClicked(MouseEvent e){}
 	public void mousePressed(MouseEvent e){
-		if(!mouseDown){
-			mouseDown = true;
+		if(!isMouseDown){
+			isMouseDown = true;
 			int clickPosX = e.getX();
 			int clickPosY = e.getY();
 			for(int i = 0; i<64; i++){
@@ -95,18 +97,19 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 				boolean inYCol = clickPosY >= 2+64*(int)(i/8) && clickPosY <= 66+64*(int)(i/8);
 
 				if(inXCol && inYCol){
-					pieceHeldFrom = i;
-					if(i == blKing){
-						pieceHeld = 0;
-					} else if(i == whKing){
-						pieceHeld = 6;
-					} else {
-						pieceHeld = getPieceIdFromSquare(i);
-					}
-					if(pieceHeld != -1){
-						removePieceFromSquare(pieceHeldFrom, pieceHeld);
-						pieceHeldMoves = calculateMoves(pieceHeld, pieceHeldFrom);
-						System.out.println(pieceHeldFrom);
+					if((isWhiteTurn && getPieceIdFromSquare(i)>5)  || (!isWhiteTurn && getPieceIdFromSquare(i) < 6)){
+						pieceHeldFrom = i;
+						if(i == blKing){
+							pieceHeld = 0;
+						} else if(i == whKing){
+							pieceHeld = 6;
+						} else {
+							pieceHeld = getPieceIdFromSquare(i);
+						}
+						if(pieceHeld != -1){
+							removePieceFromSquare(pieceHeldFrom, pieceHeld);
+							pieceHeldMoves = calculateMoves(pieceHeld, pieceHeldFrom);
+						}
 					}
 				}
 			}
@@ -114,9 +117,8 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	}
 
 	public void mouseReleased(MouseEvent e){
-		System.out.println(pieceHeldFrom);
 
-		mouseDown = false;
+		isMouseDown = false;
 		int clickPosX = e.getX();
 		int clickPosY = e.getY();
 		for(int i = 0; i<64; i++){
@@ -135,8 +137,8 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 						}
 					}
 					addPieceToSquare(pieceHeld, i);
+					isWhiteTurn = !isWhiteTurn;
 				} else {
-					System.out.println(pieceHeldFrom);
 					addPieceToSquare(pieceHeld, pieceHeldFrom);
 				}
 			}
