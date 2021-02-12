@@ -129,11 +129,13 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 				if(pieceHeldMoves[i] == true){
 					if(pieceHeld < 6){ //isblack
 						if(bitBoard[0][i] == false && bitBoard[6][i] == true) {
-							removePieceFromSquare(i, pieceHeld);
+							removePieceFromSquare(i, getPieceIdFromSquare(i));
+
 						}
 					} else { //iswhite
 						if(bitBoard[6][i] == false && bitBoard[0][i] == true) {
-							removePieceFromSquare(i, pieceHeld);
+							removePieceFromSquare(i, getPieceIdFromSquare(i));
+
 						}
 					}
 					addPieceToSquare(pieceHeld, i);
@@ -341,7 +343,7 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 
 	public void removePieceFromSquare(int square, int pieceId){
 		if(square >= 64) {
-			System.exit(0);
+			System.exit(64);
 		}
 		if(bitBoard[pieceId][square]){
 			if(pieceId > 6){
@@ -377,7 +379,7 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 		} else if (pieceId == 6) {
 			bitBoard[1][square] = true;
 		} else {
-			System.exit(1);
+			System.exit(2);
 		}
 	}
 
