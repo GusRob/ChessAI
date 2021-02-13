@@ -32,7 +32,7 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	}
 
 	//paints the dark and light tiles making up the board
-	public void paintBoard(Graphics g){
+	private void paintBoard(Graphics g){
 		//draws the board squares every time the game world is updated
 		for(int i = 1; i<8; i+=2){
 			for(int j = 1; j<8; j+=2){
@@ -45,7 +45,7 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	}
 
 	//paints the UI incl. which colour's turn and move list?
-	public void paintUI(Graphics g){
+	private void paintUI(Graphics g){
 		//draws the UI components every time the game world is updated
 		g.setColor(Color.BLACK);
 		g.setFont(new Font("Arial", Font.BOLD, 30));
