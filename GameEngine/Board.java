@@ -22,6 +22,8 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	int my = 0;
 	javax.swing.Timer t = new javax.swing.Timer(10, this);
 
+	PieceHandler pieces = new PieceHandler();
+
 	//constructor starts timer t adds mouselistener and calls paint method for first time
 	public Board(){
 		//constructor initiates game pieces
@@ -56,7 +58,7 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	public void paint(Graphics g){
 		paintBoard(g);
 		paintUI(g);
-		//paintPieces(g);
+		pieces.paint(g, this);
 	}
 
 	//input - MouseEvent  output - integer id of which square the mouse is in, -1 if none
