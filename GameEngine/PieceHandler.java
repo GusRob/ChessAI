@@ -7,13 +7,20 @@ import javax.swing.*;
 
 public class PieceHandler{
 
-	private boolean bitBoards[][] = new boolean[12][64];
 	// in order of arrays - Black Pieces; rooks; knights; bishops; queens; pawns; White Pieces; same order
 	//				pieceIds Black				0				1				2				3				4				5				blackKing is 0 also
 	//				pieceIds White				6				7				8				9				10			11			whiteKing is 6 also
+	private boolean bitBoards[][] = new boolean[12][64];
 
 	private int blKing = 4;
 	private int whKing = 60;
+
+	//flags to represent castling - if the king moves both are set to false, if a rook moves the corr. is
+	//		addressed by castles[colour][side]	where black = 0 white = 1, left = 0, right = 1
+	//		left and right will be according to the user's perspective on the screen
+	private boolean castles[][] =	{{true, true}, {true, true}};
+
+	MoveHandler moves = new MoveHandler(this);
 
 	Image[] pieceImages = new Image[12];
 
