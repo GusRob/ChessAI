@@ -37,7 +37,7 @@ public class PieceHandler{
 		g.drawImage(pieceImages[6], 2+(whKing%8)*64, 2+(int)(whKing/8)*64, board);
 	}
 
-	//input - int refering to square  output - integer : 0 represents black, 6 represents white
+	//input - int refering to square  output - integer : 0 represents black, 6 represents white, -1 if empty
 	public int getPieceColor(int square){
 		if(bitBoards[0][square] && bitBoards[6][square]){
 			System.exit(0x01);
@@ -67,11 +67,36 @@ public class PieceHandler{
 		return result;
 	}
 
-	//function takes two bitboards and returns the result of bitboard1 & bitboard2
-	public boolean[] mapAnd(boolean[] arr0, boolean[] arr1){
+	//function takes ints square and pieceId and adds piece to bitboard or throws
+	public void setPieceId(int square, int pieceId){
+		int result = 0;
+		if(pieceId == 0){
+			if(getPieceColor(square) == -1){
+				blKing = square;
+			} else { result = -1; }
+		} else if(pieceId == 6){
+			if(getPieceColor(square) == -1){
+				whKing = square;
+			} else { result = -1; }
+		} else {
+			if(getPieceColor(square) == -1){
+				bitBoards[pieceId][square] = true;
+			} else { result = -1; }
+		}
+		if(result == -1){
+			System.exit(0x03);
+		}
+		generateColorSets();
+	}
+
+	//function takes two bitboards and returns the result of bitboard1 XOR bitboard2 - overlap throws
+	public boolean[] mapXor(boolean[] arr0, boolean[] arr1){
 		boolean[] result = new boolean [64];
 		for(int i = 0; i<64; i++){
-			result[i] = arr0[i] & arr1[i];
+			if(arr0[i] && arr1[i]){
+				System.exit(0x02);
+			}
+			result[i] = arr0[i] ^ arr1[i];
 		}
 		return result;
 	}
@@ -81,8 +106,14 @@ public class PieceHandler{
 		bitBoards[0] = new boolean[64];
 		bitBoards[6] = new boolean[64];
 		for(int i = 1; i < 5; i++){
-			bitBoards[0] = mapAnd(bitBoards[0], bitBoards[i]);
-			bitBoards[6] = mapAnd(bitBoards[6], bitBoards[i+6]);
+			bitBoards[0] = mapXor(bitBoards[0], bitBoards[i]);
+			bitBoards[6] = mapXor(bitBoards[6], bitBoards[i+6]);
+		}
+		if(bitBoards[0][blKing] || bitBoards[6][whKing]){
+			System.exit(0x02);
+		} else {
+			bitBoards[0][blKing] = true;
+			bitBoards[6][whKing] = true;
 		}
 	}
 

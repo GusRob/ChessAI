@@ -1,9 +1,9 @@
 Error codes:
 
 
-0x01 : Set of Black pieces not mutually exclusive with set of white pieces
-0x02 :
-0x03 :
+0x01 : Piece Overlap - Set of Black pieces not mutually exclusive with set of white pieces
+0x02 : Piece Overlap - Unique piece bitBoards overlap within colours
+0x03 : Piece Overlap - Tried to place piece in taken square [Remove piece from square first]
 0x04 :
 0x05 :
 0x06 :
