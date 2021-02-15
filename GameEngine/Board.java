@@ -10,19 +10,18 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	Image darkSq = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/dark_sq.png");
 	Image lightSq = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/light_sq.png");
 	Image moveDot = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/brown_dot.png");
-	boolean isMouseDown = false;
-	boolean isWhiteTurn = true;
-	boolean isWhiteWinner = false;
+	private boolean isMouseDown = false;
+	private boolean isWhiteTurn = true;
+	private boolean isWhiteWinner = false;
+
+	private boolean isClick = false;
 
 	// in order of arrays - Black Pieces; rooks; knights; bishops; queens; pawns; White Pieces; same order
 	//									Black				0				1				2				3				4				5
 	//									White				6				7				8				9				10			11
-
-	int mx = 0;
-	int my = 0;
 	javax.swing.Timer t = new javax.swing.Timer(10, this);
 
-	PieceHandler pieces = new PieceHandler();
+	PieceHandler pieces = new PieceHandler(this);
 
 	//constructor starts timer t adds mouselistener and calls paint method for first time
 	public Board(){
@@ -58,7 +57,7 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	public void paint(Graphics g){
 		paintBoard(g);
 		paintUI(g);
-		pieces.paint(g, this);
+		pieces.paint(g);
 	}
 
 	//input - MouseEvent  output - integer id of which square the mouse is in, -1 if none
@@ -78,28 +77,43 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 		return result;
 	}
 
+	//getter functions for Board values
+	public boolean getTurn(){return isWhiteTurn;}
+
 	//overridden mouseEvent methods
 	public void mouseExited(MouseEvent e){}
 	public void mouseEntered(MouseEvent e){}
-	public void mouseClicked(MouseEvent e){}
+	public void mouseClicked(MouseEvent e){
+		if(!isMouseDown){
+			mousePressed(e);
+		} else {
+			mouseReleased(e);
+		}
+	}
 	public void mousePressed(MouseEvent e){
 		if(!isMouseDown){
 			isMouseDown = true;
 			int square = mouseSquare(e);
+			int pieceId = pieces.getPieceId(square);
+			if(pieceId != -1 && (pieceId>5 == isWhiteTurn)){
+				System.out.println("check");
+				pieces.setHeld(pieceId, square);
+			}
 		}
 	}
 	public void mouseReleased(MouseEvent e){
-
 		isMouseDown = false;
 		int square = mouseSquare(e);
-
+		if(pieces.getHeldId() != -1){
+			if(pieces.placeHeld(square)){
+				isWhiteTurn = !isWhiteTurn;
+			}
+		}
 	}
 
 	//overridden actionEvent method
 	//called every 10 milliseconds - updates the graphics window
 	public void actionPerformed(ActionEvent e){
-		mx = MouseInfo.getPointerInfo().getLocation().x - 430;
-		my = MouseInfo.getPointerInfo().getLocation().y - 130;
 		repaint();
 	}
 

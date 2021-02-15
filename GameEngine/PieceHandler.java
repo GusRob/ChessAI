@@ -15,22 +15,27 @@ public class PieceHandler{
 	private int blKing = 4;
 	private int whKing = 60;
 
+	private int heldId = -1;
+	private int heldSquare = -1;
+
 	//flags to represent castling - if the king moves both are set to false, if a rook moves the corr. is
 	//		addressed by castles[colour][side]	where black = 0 white = 1, left = 0, right = 1
 	//		left and right will be according to the user's perspective on the screen
 	private boolean castles[][] =	{{true, true}, {true, true}};
 
+	Board board;
 	MoveHandler moves = new MoveHandler(this);
 
 	Image[] pieceImages = new Image[12];
 
-	public PieceHandler(){
+	public PieceHandler(Board init_board){
+		board = init_board;
 		loadImages();
 		setupBoard();
 	}
 
 	//function called from board class to draw pieces to canvas
-	public void paint(Graphics g, Board board){
+	public void paint(Graphics g){
 		for(int p = 0; p<12; p++){
 			if(p != 0 && p!= 6){
 				for(int i = 0; i<64; i++){
@@ -42,9 +47,44 @@ public class PieceHandler{
 		}
 		g.drawImage(pieceImages[0], 2+(blKing%8)*64, 2+(int)(blKing/8)*64, board);
 		g.drawImage(pieceImages[6], 2+(whKing%8)*64, 2+(int)(whKing/8)*64, board);
+		if(heldId != -1){
+			int mouseX = (int)Math.round(MouseInfo.getPointerInfo().getLocation().getX()) - 432;
+			int mouseY = (int)Math.round(MouseInfo.getPointerInfo().getLocation().getY()) - 132;
+			g.drawImage(pieceImages[heldId], mouseX, mouseY, board);
+		}
 	}
 
-	//input - int refering to square  output - integer : 0 represents black, 6 represents white, -1 if empty
+	//getter functions for pieceHandler values
+	public int getHeldId(){return heldId;}
+	public int getHeldSquare(){return heldSquare;}
+
+	//setter functions for pieceHandler values
+	public void setHeld(int id, int square){
+		heldId = id;
+		heldSquare = square;
+	}
+	private void resetHeld(){
+		heldId = -1;
+		heldSquare = -1;
+	}
+
+	//input - int referring to square		output - boolean indicating successful placing
+	public boolean placeHeld(int square){
+		boolean result = false;
+		//if attempted move ∈ moves
+		if(square != heldSquare && (board.getTurn()?6:0) == getPieceColor(heldSquare)){
+			movePiece(square);
+			resetHeld();
+			result = true;
+		} else {
+
+		}
+
+		return result;
+
+	}
+
+	//input - int referring to square  output - integer : 0 represents black, 6 represents white, -1 if empty
 	public int getPieceColor(int square){
 		if(bitBoards[0][square] && bitBoards[6][square]){
 			System.exit(0x01);
@@ -56,26 +96,32 @@ public class PieceHandler{
 		if(bitBoards[6][square]){
 			result = 6;
 		}
+
 		return result;
 	}
 
-	//input - int refering to square  output - integer : pieceId as outlined after bitboard definition
+	//input - int refering to square  output - integer : pieceId as outlined after bitboard definition -1 otherwise
 	public int getPieceId(int square){
 		int col = getPieceColor(square);
 		int result = col;
 		if(result != -1){
-			for(int i = 1; i < 5; i++){
+			for(int i = 1; i < 6; i++){
 				if(bitBoards[i+col][square]){
 					result = i + col;
 				}
 			}
 		}
-
 		return result;
 	}
 
+	private void movePiece(int square){
+		bitBoards[board.getTurn()?6:0][heldSquare] = false; //prev position to empty
+		bitBoards[heldId][heldSquare] = false;
+		setPieceId(square, heldId);
+	}
+
 	//function takes ints square and pieceId and adds piece to bitboard or throws
-	public void setPieceId(int square, int pieceId){
+	private void setPieceId(int square, int pieceId){
 		int result = 0;
 		if(pieceId == 0){
 			if(getPieceColor(square) == -1){
@@ -97,7 +143,7 @@ public class PieceHandler{
 	}
 
 	//function takes two bitboards and returns the result of bitboard1 XOR bitboard2 - overlap throws
-	public boolean[] mapXor(boolean[] arr0, boolean[] arr1){
+	private boolean[] mapXor(boolean[] arr0, boolean[] arr1){
 		boolean[] result = new boolean [64];
 		for(int i = 0; i<64; i++){
 			if(arr0[i] && arr1[i]){
@@ -112,7 +158,7 @@ public class PieceHandler{
 	private void generateColorSets(){
 		bitBoards[0] = new boolean[64];
 		bitBoards[6] = new boolean[64];
-		for(int i = 1; i < 5; i++){
+		for(int i = 1; i < 6; i++){
 			bitBoards[0] = mapXor(bitBoards[0], bitBoards[i]);
 			bitBoards[6] = mapXor(bitBoards[6], bitBoards[i+6]);
 		}
