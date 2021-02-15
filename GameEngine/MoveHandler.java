@@ -9,31 +9,38 @@ public class MoveHandler{
 
 	private PieceHandler pieces;
 
-	//flags to represent check for each colour isInCheck[0] = black isInCheck[1] = white
-	private boolean[] isInCheck = {false, false};
-
-	//arraylist containing available moves
-	private ArrayList<Move> availableMoves = new ArrayList<Move>();
-
-	//flags to represent whether values need to be updated
-	//		update[0] represents isBlInCheck flag
-	//		update[1] represents isWhInCheck flag
-	//		update[2] represents availableMoves flag
-	private boolean[] update = {false, false, false};
-
 	public MoveHandler(PieceHandler init_pieces){
-		updatePieces(init_pieces);
+		pieces = init_pieces;
 	}
 
-	//update the piecehandler to get most recent state of the board
-	public void updatePieces(PieceHandler new_pieces){
-		pieces = new_pieces;
-		update[0] = false;
-		update[1] = false;
-		update[2] = false;
+	//function called to update the piece's isInCheck value
+	public void updateCheck(){
+		boolean[] isInCheck = {false, false};
+		pieces.setIsInCheck(isInCheck);
 	}
 
-	public boolean[] updateCheck(){
-		return isInCheck;
+	//function to calculate, for one side, if the king is in check
+	public boolean check(int col){
+		
+		return false;
 	}
+
+	//input - square that the held piece, stored in this classes reference to piecehandler is to move to
+	//output - true if that move is legal, false if that move isnt
+	public boolean validateTurn(int square){
+		boolean result = true;
+		int turn = pieces.board.getTurn()?6:0;
+		int heldSquare = pieces.getHeldSquare();
+		int heldColor = pieces.getPieceColor(heldSquare);
+		int heldId = pieces.getPieceId(heldSquare);
+		if(square == heldSquare || heldColor == pieces.getPieceColor(square)){ //basic move laws
+			result = false;
+		}
+		//specific piece movement laws
+		result = result && !check(heldColor);
+
+
+		return result;
+	}
+
 }

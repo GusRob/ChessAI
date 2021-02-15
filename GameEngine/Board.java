@@ -96,7 +96,6 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 			int square = mouseSquare(e);
 			int pieceId = pieces.getPieceId(square);
 			if(pieceId != -1 && (pieceId>5 == isWhiteTurn)){
-				System.out.println("check");
 				pieces.setHeld(pieceId, square);
 			}
 		}

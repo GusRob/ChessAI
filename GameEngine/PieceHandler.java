@@ -22,6 +22,7 @@ public class PieceHandler{
 	//		addressed by castles[colour][side]	where black = 0 white = 1, left = 0, right = 1
 	//		left and right will be according to the user's perspective on the screen
 	private boolean castles[][] =	{{true, true}, {true, true}};
+	private boolean isInCheck[] =	{false, false};
 
 	Board board;
 	MoveHandler moves = new MoveHandler(this);
@@ -57,11 +58,15 @@ public class PieceHandler{
 	//getter functions for pieceHandler values
 	public int getHeldId(){return heldId;}
 	public int getHeldSquare(){return heldSquare;}
+	public boolean[] getIsInCheck(){return isInCheck;}
 
 	//setter functions for pieceHandler values
 	public void setHeld(int id, int square){
 		heldId = id;
 		heldSquare = square;
+	}
+	public void setIsInCheck(boolean[] newVals){
+		isInCheck = newVals;
 	}
 	private void resetHeld(){
 		heldId = -1;
@@ -71,13 +76,13 @@ public class PieceHandler{
 	//input - int referring to square		output - boolean indicating successful placing
 	public boolean placeHeld(int square){
 		boolean result = false;
-		//if attempted move ∈ moves
-		if(square != heldSquare && (board.getTurn()?6:0) == getPieceColor(heldSquare)){
+		if(moves.validateTurn(square)){
 			movePiece(square);
 			resetHeld();
+			moves.updateCheck();
 			result = true;
 		} else {
-
+			result = false;
 		}
 
 		return result;
@@ -115,8 +120,12 @@ public class PieceHandler{
 	}
 
 	private void movePiece(int square){
-		bitBoards[board.getTurn()?6:0][heldSquare] = false; //prev position to empty
 		bitBoards[heldId][heldSquare] = false;
+		int colOnSq = getPieceColor(square);
+		if(colOnSq != -1){
+			bitBoards[getPieceId(square)][square] = false;
+			bitBoards[colOnSq][square] = false;
+		}
 		setPieceId(square, heldId);
 	}
 
