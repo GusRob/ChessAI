@@ -23,8 +23,42 @@ public class MoveHandler{
 
 	//function to calculate, for one side, if the king is in check
 	public boolean check(int col){
-		
-		return false;
+		boolean result = false;
+		int oppCol = col==0?6:0;
+		int kingX = pieces.getKing(col)%8;
+		int kingY = (int)(pieces.getKing(col)/8);
+
+		boolean[][] directions = new boolean[3][3];
+		for(int n = 1; n<7; n++){
+			for(int i = -1; i<2; i++){
+				for(int j = -1; j<2; j++){
+					System.out.println(i + " " + j);
+					if(!directions[i+1][j+1]){
+						int testX = (kingX+i*n);
+						int testY = (kingY+j*n);
+						if(testX >= 0 && testX <= 7 && testY >= 0 && testY <= 7){
+							int midSquare = testX+8*testY;
+							int pieceId = pieces.getPieceId(midSquare);
+							if(pieceId != -1){
+								if(i != 0 && j != 0){
+									if(pieceId == 3 + oppCol || pieceId == 4 + oppCol){
+										result = true;
+									}
+								} else if(i == 0 || j == 0){
+									if(pieceId == 1 + oppCol || pieceId == 4 + oppCol){
+										result = true;
+									}
+								}
+								directions[i+1][j+1] = true;
+							}
+						} else {
+							directions[i+1][j+1] = false;
+						}
+					}
+				}
+			}
+		}
+		return result;
 	}
 
 	//input - square that the held piece, stored in this classes reference to piecehandler is to move to
@@ -52,7 +86,7 @@ public class MoveHandler{
 		} else if(heldId == 0 || heldId == 6){
 			result = result && validateKing(square, heldSquare);
 		}
-		result = result && !check(heldColor); //check if the piece is in check after move?
+		result = result && !check(heldColor); //check if the piece is in check after move? this currently does it for before position so deadlock when someone is in check
 		return result;
 	}
 

@@ -65,6 +65,7 @@ public class PieceHandler{
 	public int getHeldId(){return heldId;}
 	public int getHeldSquare(){return heldSquare;}
 	public boolean[] getIsInCheck(){return isInCheck;}
+	public int getKing(int col){return (col==0?blKing:whKing);}
 	public int getBlKing(){return blKing;}
 	public int getWhKing(){return whKing;}
 
