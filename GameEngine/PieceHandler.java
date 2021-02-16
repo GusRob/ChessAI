@@ -22,6 +22,8 @@ public class PieceHandler{
 	//		addressed by castles[colour][side]	where black = 0 white = 1, left = 0, right = 1
 	//		left and right will be according to the user's perspective on the screen
 	private boolean castles[][] =	{{true, true}, {true, true}};
+
+	//flags for check where index 0 = black index 1 = white
 	private boolean isInCheck[] =	{false, false};
 
 	Board board;
@@ -40,7 +42,7 @@ public class PieceHandler{
 		for(int p = 0; p<12; p++){
 			if(p != 0 && p!= 6){
 				for(int i = 0; i<64; i++){
-					if(bitBoards[p][i]){
+					if(bitBoards[p][i] && i != heldSquare){
 						g.drawImage(pieceImages[p], 2+(i%8)*64, 2+(int)(i/8)*64, board);
 					}
 				}
@@ -59,6 +61,8 @@ public class PieceHandler{
 	public int getHeldId(){return heldId;}
 	public int getHeldSquare(){return heldSquare;}
 	public boolean[] getIsInCheck(){return isInCheck;}
+	public int getBlKing(){return blKing;}
+	public int getWhKing(){return whKing;}
 
 	//setter functions for pieceHandler values
 	public void setHeld(int id, int square){
@@ -78,12 +82,12 @@ public class PieceHandler{
 		boolean result = false;
 		if(moves.validateTurn(square)){
 			movePiece(square);
-			resetHeld();
 			moves.updateCheck();
 			result = true;
 		} else {
 			result = false;
 		}
+		resetHeld();
 
 		return result;
 
@@ -208,17 +212,17 @@ public class PieceHandler{
 
 	//function called upon pieceHandler instantiation to populate images array
 	private void loadImages(){
-		pieceImages[0] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/king_black.png");
-		pieceImages[1] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/rook_black.png");
-		pieceImages[2] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/knight_black.png");
-		pieceImages[3] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/bishop_black.png");
-		pieceImages[4] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/queen_black.png");
-		pieceImages[5] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/pawn_black.png");
-		pieceImages[6] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/king_white.png");
-		pieceImages[7] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/rook_white.png");
-		pieceImages[8] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/knight_white.png");
-		pieceImages[9] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/bishop_white.png");
-		pieceImages[10] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/queen_white.png");
-		pieceImages[11] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/pawn_white.png");
+		pieceImages[0] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/images/king_black.png");
+		pieceImages[1] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/images/rook_black.png");
+		pieceImages[2] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/images/knight_black.png");
+		pieceImages[3] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/images/bishop_black.png");
+		pieceImages[4] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/images/queen_black.png");
+		pieceImages[5] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/images/pawn_black.png");
+		pieceImages[6] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/images/king_white.png");
+		pieceImages[7] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/images/rook_white.png");
+		pieceImages[8] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/images/knight_white.png");
+		pieceImages[9] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/images/bishop_white.png");
+		pieceImages[10] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/images/queen_white.png");
+		pieceImages[11] = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/images/pawn_white.png");
 	}
 }

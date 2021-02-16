@@ -16,12 +16,14 @@ public class MoveHandler{
 	//function called to update the piece's isInCheck value
 	public void updateCheck(){
 		boolean[] isInCheck = {false, false};
+		isInCheck[0] = check(0);
+		isInCheck[1] = check(6);
 		pieces.setIsInCheck(isInCheck);
 	}
 
 	//function to calculate, for one side, if the king is in check
 	public boolean check(int col){
-		
+
 		return false;
 	}
 
@@ -37,10 +39,76 @@ public class MoveHandler{
 			result = false;
 		}
 		//specific piece movement laws
-		result = result && !check(heldColor);
+		if(heldId == 5 || heldId == 11){
+			result = result && validatePawn(square, heldSquare, heldColor);
+		} else if(heldId == 4 || heldId == 10){
+			result = result && validateQueen(square, heldSquare);
+		} else if(heldId == 3 || heldId == 9){
+			result = result && validateBishop(square, heldSquare);
+		} else if(heldId == 2 || heldId == 8){
+			result = result && validateKnight(square, heldSquare);
+		} else if(heldId == 1 || heldId == 7){
+			result = result && validateRook(square, heldSquare);
+		} else if(heldId == 0 || heldId == 6){
+			result = result && validateKing(square, heldSquare);
+		}
+		result = result && !check(heldColor); //check if the piece is in check after move?
+		return result;
+	}
 
+	private boolean validatePawn(int squareTo, int squareFrom, int color){
+		boolean result = false;
+		int direction = color==0?1:-1; //if white - direction pos // if black - direction neg
+		int oppColor = color==0?6:0;
+
+		if(squareTo == squareFrom + 8*direction){
+			if(pieces.getPieceColor(squareTo) == -1){
+				// if move is one square forwards && square is empty
+				result = true;
+			} else {result = false;}
+		} else if(squareTo == squareFrom + 16*direction){
+			if(pieces.getPieceColor(squareTo) == -1 && pieces.getPieceColor(squareFrom+8*direction) == -1 && (int)(squareFrom/8) == (color==0?1:6)){
+				// if move is two squares forwards && both squares are empty && piece is moving from second rank on their side
+				result = true;
+			} else {result = false;}
+		} else if((squareTo == squareFrom + 8*direction + 1 && (int)(squareTo/8) ==(int)((squareTo+1)/8)) || squareTo == squareFrom + 8*direction - 1 && (int)(squareTo/8) ==(int)((squareTo-1)/8)){
+			if(pieces.getPieceColor(squareTo) == oppColor){
+				//if move is a forward diagonal, and square contains an opponent piece
+				result = true;
+			} else {result = false;}
+		} else {result = false;}
+		return result;
+	}
+
+	private boolean validateKnight(int squareTo, int squareFrom){
+		boolean result = false;
+		int xDiff = Math.abs( squareTo%8 - squareFrom%8 );
+		int yDiff = Math.abs( (int)(squareTo/8) - (int)(squareFrom/8) );
+
+		if((xDiff == 2 && yDiff == 1) || (xDiff == 1 && yDiff == 2)){
+			//if it moves (2 L or R and 1 U or D) or (1 L or R and 2 U or D)
+			result = true;
+		} else {result = false;}
 
 		return result;
 	}
+
+	private boolean validateBishop(int squareTo, int squareFrom){
+		return true;
+	}
+
+	private boolean validateRook(int squareTo, int squareFrom){
+		return true;
+	}
+
+	private boolean validateKing(int squareTo, int squareFrom){
+		return true;
+	}
+
+	private boolean validateQueen(int squareTo, int squareFrom){
+		return true;
+	}
+
+
 
 }

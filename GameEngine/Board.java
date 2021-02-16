@@ -7,9 +7,9 @@ import java.util.*;
 
 //this class handles drawing to the window and user interaction events
 public class Board extends JPanel implements MouseListener, ActionListener{
-	Image darkSq = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/dark_sq.png");
-	Image lightSq = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/light_sq.png");
-	Image moveDot = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/brown_dot.png");
+	Image darkSq = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/images/dark_sq.png");
+	Image lightSq = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/images/light_sq.png");
+	Image moveDot = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/images/brown_dot.png");
 	private boolean isMouseDown = false;
 	private boolean isWhiteTurn = true;
 	private boolean isWhiteWinner = false;
@@ -51,6 +51,7 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 		g.setColor(Color.BLACK);
 		g.setFont(new Font("Arial", Font.BOLD, 30));
 		g.drawString(isWhiteTurn ? "White's Turn" : "Black's Turn", 10, 550);
+		g.drawString(pieces.getIsInCheck()[isWhiteTurn?1:0] ? "Check" : "", 200, 550);
 	}
 
 	//called with repaint() - triggers paint helper functions
