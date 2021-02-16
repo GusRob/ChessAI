@@ -23,7 +23,7 @@ public class MoveHandler{
 
 	//function to calculate, for one side, if the king is in check
 	public boolean check(int col){
-
+		
 		return false;
 	}
 
@@ -94,19 +94,53 @@ public class MoveHandler{
 	}
 
 	private boolean validateBishop(int squareTo, int squareFrom){
-		return true;
+		boolean result = false;
+		int xDiff = Math.abs( squareTo%8 - squareFrom%8 );
+		int yDiff = Math.abs( (int)(squareTo/8) - (int)(squareFrom/8) );
+		int xDirection = xDiff==0?0:(squareTo%8>squareFrom%8)?1:-1;
+		int yDirection = yDiff==0?0:((int)(squareTo/8)>(int)(squareFrom/8))?1:-1;
+		if(xDiff == yDiff){
+			result = true;
+			for(int i = 1; i<xDiff; i++){
+				int midSquare = squareFrom+xDirection*i+yDirection*8*i;
+				if(pieces.getPieceColor(midSquare) != -1){
+					result = false;
+				}
+			}
+		}
+		return result;
 	}
 
 	private boolean validateRook(int squareTo, int squareFrom){
-		return true;
+		boolean result = false;
+		int xDiff = Math.abs( squareTo%8 - squareFrom%8 );
+		int yDiff = Math.abs( (int)(squareTo/8) - (int)(squareFrom/8) );
+		int xDirection = xDiff==0?0:(squareTo%8>squareFrom%8)?1:-1;
+		int yDirection = yDiff==0?0:((int)(squareTo/8)>(int)(squareFrom/8))?1:-1;
+		if(xDiff == 0 || yDiff == 0){
+			result = true;
+			for(int i = 1; i<Math.max(xDiff, yDiff); i++){
+				int midSquare = squareFrom+xDirection*i+yDirection*8*i;
+				if(pieces.getPieceColor(midSquare) != -1){
+					result = false;
+				}
+			}
+		}
+		return result;
 	}
 
 	private boolean validateKing(int squareTo, int squareFrom){
-		return true;
+		boolean result = false;
+		int xDiff = Math.abs( squareTo%8 - squareFrom%8 );
+		int yDiff = Math.abs( (int)(squareTo/8) - (int)(squareFrom/8) );
+		if(xDiff <=1 && yDiff <=1){
+			result = true;
+		}
+		return result;
 	}
 
 	private boolean validateQueen(int squareTo, int squareFrom){
-		return true;
+		return validateBishop(squareTo, squareFrom) || validateRook(squareTo, squareFrom);
 	}
 
 

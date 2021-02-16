@@ -48,8 +48,12 @@ public class PieceHandler{
 				}
 			}
 		}
-		g.drawImage(pieceImages[0], 2+(blKing%8)*64, 2+(int)(blKing/8)*64, board);
-		g.drawImage(pieceImages[6], 2+(whKing%8)*64, 2+(int)(whKing/8)*64, board);
+		if(heldId != 0){
+			g.drawImage(pieceImages[0], 2+(blKing%8)*64, 2+(int)(blKing/8)*64, board);
+		}
+		if(heldId != 6){
+			g.drawImage(pieceImages[6], 2+(whKing%8)*64, 2+(int)(whKing/8)*64, board);
+		}
 		if(heldId != -1){
 			int mouseX = (int)Math.round(MouseInfo.getPointerInfo().getLocation().getX()) - 432;
 			int mouseY = (int)Math.round(MouseInfo.getPointerInfo().getLocation().getY()) - 132;
