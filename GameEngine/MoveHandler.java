@@ -27,12 +27,21 @@ public class MoveHandler{
 		int oppCol = col==0?6:0;
 		int kingX = pieces.getKing(col)%8;
 		int kingY = (int)(pieces.getKing(col)/8);
+		int direction = col==0?-1:1;
 
+		int oppKingX = pieces.getKing(oppCol)%8;
+		int oppKingY = (int)(pieces.getKing(oppCol)/8);
+
+		//check kings arent checking each other throw error
+		if(Math.abs(kingX - oppKingX) < 2 && Math.abs(kingY - oppKingY) < 2 ){
+			System.exit(0x10);
+		}
+
+		//check for linear moving pieces
 		boolean[][] directions = new boolean[3][3];
 		for(int n = 1; n<7; n++){
 			for(int i = -1; i<2; i++){
 				for(int j = -1; j<2; j++){
-					System.out.println(i + " " + j);
 					if(!directions[i+1][j+1]){
 						int testX = (kingX+i*n);
 						int testY = (kingY+j*n);
@@ -58,6 +67,39 @@ public class MoveHandler{
 				}
 			}
 		}
+		//check for knight
+		for(int i = -2; i < 3; i++){
+			for(int j = -2; j < 3; j++){
+				if(i != 0 && j != 0 && Math.abs(i) != Math.abs(j)){
+					if(kingX + i >= 0 && kingX + i <= 7 && kingY + j >= 0 && kingY + j <= 7){
+						int test = ((kingX+i)+8*(kingY+j));
+						int pieceId = pieces.getPieceId(test);
+						if(pieceId == 2 + oppCol){
+							result = true;
+						}
+					}
+				}
+			}
+		}
+		//check for pawns
+		int pawnSq1x = kingX + 1;
+		int pawnSq2x = kingX - 1;
+		int pawnSqY = kingY - direction;
+		System.out.println("(" + pawnSq1x + ", " + pawnSqY  +")");
+		System.out.println("(" + pawnSq2x + ", " + pawnSqY  +")");
+		if(pawnSqY >= 0 && pawnSqY <= 7){
+			if(pawnSq1x >= 0 && pawnSq1x <= 7){
+				if(pieces.getPieceId(pawnSq1x + 8*pawnSqY) == 5 + oppCol){
+					result = true;
+				}
+			}
+			if(pawnSq2x >= 0 && pawnSq2x <= 7){
+				if(pieces.getPieceId(pawnSq2x + 8*pawnSqY) == 5 + oppCol){
+					result = true;
+				}
+			}
+		}
+
 		return result;
 	}
 
@@ -90,6 +132,9 @@ public class MoveHandler{
 		return result;
 	}
 
+	//functions for specific piece moves
+	//input - square piece is moving to, from, and, where necessary the colour of the pieces
+	//output - a boolean answering can the piece make that move
 	private boolean validatePawn(int squareTo, int squareFrom, int color){
 		boolean result = false;
 		int direction = color==0?1:-1; //if white - direction pos // if black - direction neg

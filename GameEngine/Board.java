@@ -95,9 +95,11 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 		if(!isMouseDown){
 			isMouseDown = true;
 			int square = mouseSquare(e);
-			int pieceId = pieces.getPieceId(square);
-			if(pieceId != -1 && (pieceId>5 == isWhiteTurn)){
-				pieces.setHeld(pieceId, square);
+			if(square != -1){
+				int pieceId = pieces.getPieceId(square);
+				if(pieceId != -1 && (pieceId>5 == isWhiteTurn)){
+					pieces.setHeld(pieceId, square);
+				}
 			}
 		}
 	}

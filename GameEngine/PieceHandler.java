@@ -12,9 +12,11 @@ public class PieceHandler{
 	//				pieceIds White				6				7				8				9				10			11			whiteKing is 6 also
 	private boolean bitBoards[][] = new boolean[12][64];
 
+	//king squares, an entire bitboard isnt needed because there can only be one
 	private int blKing = 4;
 	private int whKing = 60;
 
+	//held piece values
 	private int heldId = -1;
 	private int heldSquare = -1;
 
@@ -128,6 +130,7 @@ public class PieceHandler{
 		return result;
 	}
 
+	//ifunction takes the square the class scoped held piece is moving to and puts the piece there
 	private void movePiece(int square){
 		bitBoards[heldId][heldSquare] = false;
 		int colOnSq = getPieceColor(square);
