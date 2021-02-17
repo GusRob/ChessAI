@@ -26,8 +26,9 @@ public class MoveHandler{
 	public boolean check(int col, boolean[][] bitBoards_tmp){
 		boolean result = false;
 		int oppCol = col==0?6:0;
-		int kingX = pieces.getKing(col, bitBoards_tmp)%8;
-		int kingY = (int)(pieces.getKing(col, bitBoards_tmp)/8);
+		int king = pieces.getKing(col, bitBoards_tmp);
+		int kingX = king %8;
+		int kingY = (int)(king/8);
 		int direction = col==0?-1:1;
 
 		int oppKingX = pieces.getKing(oppCol)%8;
@@ -108,7 +109,6 @@ public class MoveHandler{
 		int turn = pieces.board.getTurn()?6:0;
 		int heldSquare = pieces.getHeldSquare();
 		int heldColor = pieces.getPieceColor(heldSquare);
-		int oppHeldColor = heldColor==0?6:0;
 		int heldId = pieces.getPieceId(heldSquare);
 		if(square == heldSquare || heldColor == pieces.getPieceColor(square)){ //basic move laws
 			result = false;
@@ -125,22 +125,29 @@ public class MoveHandler{
 		} else if(heldId == 1 || heldId == 7){
 			result = result && validateRook(square, heldSquare);
 		} else if(heldId == 0 || heldId == 6){
-			result = result && validateKing(square, heldSquare);
+			result = result && validateKing(square, heldSquare, heldColor);
 		}
 		if(result){
-			boolean[][] resultingBoard = pieces.getBitBoardsCopy();
-			if(resultingBoard[oppHeldColor][square]){
-				for(int i = 0; i < 6; i++){
-					resultingBoard[oppHeldColor+i][square] = false;
-				}
-			}
-			resultingBoard[heldColor][heldSquare] = false;
-			resultingBoard[heldId][heldSquare] = false;
-			resultingBoard[heldColor][square] = true;
-			resultingBoard[heldId][square] = true;
+			boolean[][] resultingBoard = bitBoardsTmp(square, heldColor, heldId, heldSquare);
 			result = result && !check(heldColor, resultingBoard); //check if the piece is in check after move
 		}
 		return result;
+	}
+
+	private boolean[][] bitBoardsTmp(int square, int heldColor, int heldId, int heldSquare){
+		int oppHeldColor = heldColor==0?6:0;
+		boolean[][] resultingBoard = pieces.getBitBoardsCopy();
+
+		if(resultingBoard[oppHeldColor][square]){
+			for(int i = 0; i < 6; i++){
+				resultingBoard[oppHeldColor+i][square] = false;
+			}
+		}
+		resultingBoard[heldColor][heldSquare] = false;
+		resultingBoard[heldId][heldSquare] = false;
+		resultingBoard[heldColor][square] = true;
+		resultingBoard[heldId][square] = true;
+		return resultingBoard;
 	}
 
 	//functions for specific piece moves
@@ -164,6 +171,8 @@ public class MoveHandler{
 		} else if((squareTo == squareFrom + 8*direction + 1 && (int)(squareTo/8) ==(int)((squareTo+1)/8)) || squareTo == squareFrom + 8*direction - 1 && (int)(squareTo/8) ==(int)((squareTo-1)/8)){
 			if(pieces.getPieceColor(squareTo) == oppColor){
 				//if move is a forward diagonal, and square contains an opponent piece
+				result = true;
+			} else if(pieces.getPassant(oppColor==0?0:1,squareTo%8)){
 				result = true;
 			} else {result = false;}
 		} else {result = false;}
@@ -219,12 +228,29 @@ public class MoveHandler{
 		return result;
 	}
 
-	private boolean validateKing(int squareTo, int squareFrom){
+	private boolean validateKing(int squareTo, int squareFrom, int color){
 		boolean result = false;
 		int xDiff = Math.abs( squareTo%8 - squareFrom%8 );
 		int yDiff = Math.abs( (int)(squareTo/8) - (int)(squareFrom/8) );
 		if(xDiff <=1 && yDiff <=1){
 			result = true;
+		} else if (yDiff == 0 && xDiff == 2){ //castling laws
+			int direction = (squareTo>squareFrom?1:-1);
+			if(pieces.getCastles(color==0?0:1, direction==1?1:0)){
+				for(int i = 1; i < 5; i++){
+					int midSqCol = pieces.getPieceId(squareFrom+(i*direction));
+					if( midSqCol  != -1 ){
+						if(midSqCol == 1 + color){
+							boolean[][] bitBoards_tmp1 = bitBoardsTmp(squareTo, color, color, squareFrom);
+							boolean[][] bitBoards_tmp2 = bitBoardsTmp(squareFrom + direction, color, color, squareFrom);
+							boolean check1 = check(color, bitBoards_tmp1);
+							boolean check2 = check(color, bitBoards_tmp2);
+							result = !check1 && !check2;
+						} else {result = false;}
+						i = 5;
+					}
+				}
+			}
 		}
 		return result;
 	}

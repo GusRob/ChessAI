@@ -26,6 +26,10 @@ public class PieceHandler{
 	//		left and right will be according to the user's perspective on the screen
 	private boolean castles[][] =	{{true, true}, {true, true}};
 
+	//flags to represent if an en passant capture can take place
+	//		addressed by passant[col][file] where black = 0 white = 1 and file corresponds to the column of the pawn to be taken
+	private boolean passant[][] =	new boolean[2][8];
+
 	//flags for check where index 0 = black index 1 = white
 	private boolean isInCheck[] =	{false, false};
 
@@ -71,6 +75,8 @@ public class PieceHandler{
 	public int getKing(int col){return (col==0?blKing:whKing);}
 	public int getBlKing(){return blKing;}
 	public int getWhKing(){return whKing;}
+	public boolean getPassant(int a, int b){return passant[a][b];}
+	public boolean getCastles(int a, int b){return castles[a][b];}
 	public boolean[][] getBitBoardsCopy(){
 		boolean[][] result = new boolean[12][64];
 		for(int i = 0; i<bitBoards.length; i++){
@@ -97,13 +103,14 @@ public class PieceHandler{
 		boolean result = false;
 		if(moves.validateTurn(square)){
 			movePiece(square);
+			boolean[] pReset = new boolean[8];
+			passant[board.getTurn()?0:1] = pReset;
 			moves.updateCheck();
 			result = true;
 		} else {
 			result = false;
 		}
 		resetHeld();
-
 		return result;
 
 	}
@@ -138,10 +145,27 @@ public class PieceHandler{
 		return result;
 	}
 
-	//input - int refering to square and bitBoard  output - integer : pieceId as outlined after bitboard definition -1 otherwise
+	//input - int referring to square and tmp bitBoard  output - integer : 0 represents black, 6 represents white, -1 if empty
+	//method for use when testing a potential move
+	public int getPieceColor(int square, boolean[][] bitBoards_tmp){
+		if(bitBoards_tmp[0][square] && bitBoards_tmp[6][square]){
+			System.exit(0x01);
+		}
+		int result = -1;
+		if(bitBoards_tmp[0][square]){
+			result = 0;
+		}
+		if(bitBoards_tmp[6][square]){
+			result = 6;
+		}
+
+		return result;
+	}
+
+	//input - int refering to square and tmp bitBoard  output - integer : pieceId as outlined after bitboard definition -1 otherwise
 	//method for use when testing a potential move
 	public int getPieceId(int square, boolean[][] bitBoards_tmp){
-		int col = getPieceColor(square);
+		int col = getPieceColor(square, bitBoards_tmp);
 		int result = col;
 		if(result != -1){
 			for(int i = 1; i < 6; i++){
@@ -178,6 +202,48 @@ public class PieceHandler{
 		if(colOnSq != -1){
 			bitBoards[getPieceId(square)][square] = false;
 			bitBoards[colOnSq][square] = false;
+		}
+		//en passant move
+		int turn = board.getTurn()?6:0;
+		if(heldId == 5 + turn){ // if piece is a pawn
+			if(colOnSq == -1){
+				//if square moving to is empty
+				int direction = turn==0?1:-1; //if white - direction pos // if black - direction neg
+				for(int i = -1; i <2; i +=2){
+					if( square == heldSquare + 8*direction + i && (int)(square/8) ==(int)((square+i)/8) ){
+						//if move is forward diagonal
+						bitBoards[5 + (turn==6?0:6)][heldSquare+i] = false; //remove pawn from square behind where pawn is moving to
+						bitBoards[turn==6?0:6][heldSquare+i] = false;
+					}
+				}
+				if(square == heldSquare + 16*direction){ // if move is double opening move allow passant for one turn
+					passant[turn==0?0:1][square%8] = true;
+				}
+			}
+		}
+		//castle move
+		int castleIndex = turn==0?0:1;
+		if(castles[castleIndex][0] || castles[castleIndex][1]){ // if moving colour is able to castle
+			if(heldId == turn){ // if piece is a king
+				castles[castleIndex][0] = false;
+				castles[castleIndex][1] = false;
+				if(Math.abs(heldSquare-square) == 2){//if king moving LorR 2
+					int direction = (square>heldSquare)?-1:1;//1 for left, -1 for right
+					int corner = (square>heldSquare)?7:0;//0 for left, 7 for right
+					int kingRank = (int)(square/8);
+					int rookSq = (kingRank*8) + corner;
+					//move rook
+					bitBoards[turn+1][rookSq] = false;
+					bitBoards[turn+1][rookSq] = false;
+					setPieceId(square+direction, turn+1);
+				}
+			} else if (heldId == 1 + turn){ // if piece is a rook
+				if((turn/6)*56 == heldSquare){ // left side rook
+					castles[castleIndex][0] = false;
+				} else if (7+((turn/6)*56) == heldSquare){ // right side rook
+					castles[castleIndex][1] = false;
+				}
+			}
 		}
 		setPieceId(square, heldId);
 	}
