@@ -2,10 +2,10 @@ package GameEngine;
 
 import javax.swing.*;
 
+//Create Window to open chess game, instantiate Board and add to window
 public class Main{
 
 	public static void main(String[] args){
-		//Create Window to open chess game, instantiate Board and add to window
 		JFrame chessWindow = new JFrame("ChessAI");
 		chessWindow.setBounds(400, 100, 512, 562);
 		chessWindow.setExtendedState(JFrame.NORMAL);

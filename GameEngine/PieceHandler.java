@@ -5,12 +5,13 @@ import java.util.*;
 import javax.swing.*;
 
 
+//class stored infor about all of the pieces and handles their movement
 public class PieceHandler{
 
 	// in order of arrays - Black Pieces; rooks; knights; bishops; queens; pawns; White Pieces; same order
 	//				pieceIds Black				0				1				2				3				4				5				blackKing is 0 also
 	//				pieceIds White				6				7				8				9				10			11			whiteKing is 6 also
-	private boolean bitBoards[][] = new boolean[12][64];
+	public boolean bitBoards[][] = new boolean[12][64];
 
 	//king squares, an entire bitboard isnt needed because there can only be one
 	private int blKing = 4;
@@ -70,6 +71,13 @@ public class PieceHandler{
 	public int getKing(int col){return (col==0?blKing:whKing);}
 	public int getBlKing(){return blKing;}
 	public int getWhKing(){return whKing;}
+	public boolean[][] getBitBoardsCopy(){
+		boolean[][] result = new boolean[12][64];
+		for(int i = 0; i<bitBoards.length; i++){
+			result[i] = Arrays.copyOf(bitBoards[i], 64);
+		}
+		return result;
+	}
 
 	//setter functions for pieceHandler values
 	public void setHeld(int id, int square){
@@ -125,6 +133,39 @@ public class PieceHandler{
 				if(bitBoards[i+col][square]){
 					result = i + col;
 				}
+			}
+		}
+		return result;
+	}
+
+	//input - int refering to square and bitBoard  output - integer : pieceId as outlined after bitboard definition -1 otherwise
+	//method for use when testing a potential move
+	public int getPieceId(int square, boolean[][] bitBoards_tmp){
+		int col = getPieceColor(square);
+		int result = col;
+		if(result != -1){
+			for(int i = 1; i < 6; i++){
+				if(bitBoards_tmp[i+col][square]){
+					result = i + col;
+				}
+			}
+		}
+		return result;
+	}
+
+	//input - int refering to color and bitBoard  output - integer : square containing king of that col
+	//method for use when testing a potential move
+	public int getKing(int col, boolean[][] bitBoards_tmp){
+		boolean[] resultBoard = Arrays.copyOf(bitBoards_tmp[col], 64);
+		for(int n = 1; n < 6; n++){
+			for(int i = 0; i<64; i++){
+				resultBoard[i] = resultBoard[i] ^ bitBoards_tmp[col+n][i];
+			}
+		}
+		int result = -1;
+		for(int i = 0; i<64; i++){
+			if(resultBoard[i]){
+				result = i;
 			}
 		}
 		return result;

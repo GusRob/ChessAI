@@ -9,7 +9,6 @@ import java.util.*;
 public class Board extends JPanel implements MouseListener, ActionListener{
 	Image darkSq = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/images/dark_sq.png");
 	Image lightSq = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/images/light_sq.png");
-	Image moveDot = Toolkit.getDefaultToolkit().getImage("GameEngine/assets/images/brown_dot.png");
 	private boolean isMouseDown = false;
 	private boolean isWhiteTurn = true;
 	private boolean isWhiteWinner = false;

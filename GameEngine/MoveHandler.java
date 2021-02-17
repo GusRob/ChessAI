@@ -5,6 +5,7 @@ import java.util.*;
 import javax.swing.*;
 
 
+//class is used to check if moves attempted are valid and calculate if the players are in check etc
 public class MoveHandler{
 
 	private PieceHandler pieces;
@@ -16,17 +17,17 @@ public class MoveHandler{
 	//function called to update the piece's isInCheck value
 	public void updateCheck(){
 		boolean[] isInCheck = {false, false};
-		isInCheck[0] = check(0);
-		isInCheck[1] = check(6);
+		isInCheck[0] = check(0, pieces.getBitBoardsCopy());
+		isInCheck[1] = check(6, pieces.getBitBoardsCopy());
 		pieces.setIsInCheck(isInCheck);
 	}
 
 	//function to calculate, for one side, if the king is in check
-	public boolean check(int col){
+	public boolean check(int col, boolean[][] bitBoards_tmp){
 		boolean result = false;
 		int oppCol = col==0?6:0;
-		int kingX = pieces.getKing(col)%8;
-		int kingY = (int)(pieces.getKing(col)/8);
+		int kingX = pieces.getKing(col, bitBoards_tmp)%8;
+		int kingY = (int)(pieces.getKing(col, bitBoards_tmp)/8);
 		int direction = col==0?-1:1;
 
 		int oppKingX = pieces.getKing(oppCol)%8;
@@ -36,7 +37,6 @@ public class MoveHandler{
 		if(Math.abs(kingX - oppKingX) < 2 && Math.abs(kingY - oppKingY) < 2 ){
 			System.exit(0x10);
 		}
-
 		//check for linear moving pieces
 		boolean[][] directions = new boolean[3][3];
 		for(int n = 1; n<7; n++){
@@ -47,7 +47,7 @@ public class MoveHandler{
 						int testY = (kingY+j*n);
 						if(testX >= 0 && testX <= 7 && testY >= 0 && testY <= 7){
 							int midSquare = testX+8*testY;
-							int pieceId = pieces.getPieceId(midSquare);
+							int pieceId = pieces.getPieceId(midSquare, bitBoards_tmp);
 							if(pieceId != -1){
 								if(i != 0 && j != 0){
 									if(pieceId == 3 + oppCol || pieceId == 4 + oppCol){
@@ -73,7 +73,7 @@ public class MoveHandler{
 				if(i != 0 && j != 0 && Math.abs(i) != Math.abs(j)){
 					if(kingX + i >= 0 && kingX + i <= 7 && kingY + j >= 0 && kingY + j <= 7){
 						int test = ((kingX+i)+8*(kingY+j));
-						int pieceId = pieces.getPieceId(test);
+						int pieceId = pieces.getPieceId(test, bitBoards_tmp);
 						if(pieceId == 2 + oppCol){
 							result = true;
 						}
@@ -85,16 +85,14 @@ public class MoveHandler{
 		int pawnSq1x = kingX + 1;
 		int pawnSq2x = kingX - 1;
 		int pawnSqY = kingY - direction;
-		System.out.println("(" + pawnSq1x + ", " + pawnSqY  +")");
-		System.out.println("(" + pawnSq2x + ", " + pawnSqY  +")");
 		if(pawnSqY >= 0 && pawnSqY <= 7){
 			if(pawnSq1x >= 0 && pawnSq1x <= 7){
-				if(pieces.getPieceId(pawnSq1x + 8*pawnSqY) == 5 + oppCol){
+				if(pieces.getPieceId(pawnSq1x + 8*pawnSqY, bitBoards_tmp) == 5 + oppCol){
 					result = true;
 				}
 			}
 			if(pawnSq2x >= 0 && pawnSq2x <= 7){
-				if(pieces.getPieceId(pawnSq2x + 8*pawnSqY) == 5 + oppCol){
+				if(pieces.getPieceId(pawnSq2x + 8*pawnSqY, bitBoards_tmp) == 5 + oppCol){
 					result = true;
 				}
 			}
@@ -110,6 +108,7 @@ public class MoveHandler{
 		int turn = pieces.board.getTurn()?6:0;
 		int heldSquare = pieces.getHeldSquare();
 		int heldColor = pieces.getPieceColor(heldSquare);
+		int oppHeldColor = heldColor==0?6:0;
 		int heldId = pieces.getPieceId(heldSquare);
 		if(square == heldSquare || heldColor == pieces.getPieceColor(square)){ //basic move laws
 			result = false;
@@ -128,7 +127,19 @@ public class MoveHandler{
 		} else if(heldId == 0 || heldId == 6){
 			result = result && validateKing(square, heldSquare);
 		}
-		result = result && !check(heldColor); //check if the piece is in check after move? this currently does it for before position so deadlock when someone is in check
+		if(result){
+			boolean[][] resultingBoard = pieces.getBitBoardsCopy();
+			if(resultingBoard[oppHeldColor][square]){
+				for(int i = 0; i < 6; i++){
+					resultingBoard[oppHeldColor+i][square] = false;
+				}
+			}
+			resultingBoard[heldColor][heldSquare] = false;
+			resultingBoard[heldId][heldSquare] = false;
+			resultingBoard[heldColor][square] = true;
+			resultingBoard[heldId][square] = true;
+			result = result && !check(heldColor, resultingBoard); //check if the piece is in check after move
+		}
 		return result;
 	}
 
