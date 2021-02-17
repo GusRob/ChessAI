@@ -22,3 +22,15 @@ This repository will consist of a self project in which i will attempt to:
                                           - class Board is handler for program, receives UI and will draw to window
                                           - classes to be created - class 'PieceHandler' will store the piece locations, check legal moves etc.
                                                                   - class 'ComputerOpp' will be the basis of the AI opponent for the user to play
+
+2021/02/17 - cleanUp has been merged to main
+           - structure of classes modified slightly - class Main is entry point, creates window instantiates and adds Board
+                                                    - class Board is handler for program execution and game constants, will draw UI and board to window
+                                                    - class PieceHandler is handler for pieces and team information, will draw pieces to window
+                                                    - class MoveHandler is checking aid for moves attempted, returns if moves are possible to PieceHandler
+                                                    - class to be created - class 'ComputerOpp' will be the basis of the AI opponent for the user to play
+           - still to be implemented is - piece promotion
+                                        - en passant laws
+                                        - castling laws
+                                        - computer opponent
+
