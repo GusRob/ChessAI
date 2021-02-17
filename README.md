@@ -5,6 +5,8 @@
   *  - [ ] Develop a basic cpu opponent to play against
   *  - [ ] Evolve the cpu opponent to use more and more advanced concepts and as such be harder to beat
 
+## Milestone Log
+
 2021/01/02
   * basic template made to create board window in dir GameEngine
 
