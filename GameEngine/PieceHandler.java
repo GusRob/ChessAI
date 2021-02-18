@@ -30,8 +30,12 @@ public class PieceHandler{
 	//		addressed by passant[col][file] where black = 0 white = 1 and file corresponds to the column of the pawn to be taken
 	private boolean passant[][] =	new boolean[2][8];
 
+	//promotion selection is the id of the selected piece
+	private int proSelectId = -1;
+
 	//flags for check where index 0 = black index 1 = white
 	private boolean isInCheck[] =	{false, false};
+	private boolean isInCheckMate[] =	{false, false};
 
 	Board board;
 	MoveHandler moves = new MoveHandler(this);
@@ -42,6 +46,14 @@ public class PieceHandler{
 		board = init_board;
 		loadImages();
 		setupBoard();
+	}
+
+	//function called from board class to draw pieces to selection box
+	public void paintSelection(Graphics g){
+		g.drawImage(pieceImages[!board.getTurn()?10:4], 122, 227, board);
+		g.drawImage(pieceImages[!board.getTurn()?9:3], 122 + 276/4, 227, board);
+		g.drawImage(pieceImages[!board.getTurn()?8:2], 122 + 276/2, 227, board);
+		g.drawImage(pieceImages[!board.getTurn()?7:1], 122 + 3*276/4, 227, board);
 	}
 
 	//function called from board class to draw pieces to canvas
@@ -72,6 +84,7 @@ public class PieceHandler{
 	public int getHeldId(){return heldId;}
 	public int getHeldSquare(){return heldSquare;}
 	public boolean[] getIsInCheck(){return isInCheck;}
+	public boolean[] getIsInCheckMate(){return isInCheckMate;}
 	public int getKing(int col){return (col==0?blKing:whKing);}
 	public int getBlKing(){return blKing;}
 	public int getWhKing(){return whKing;}
@@ -93,18 +106,53 @@ public class PieceHandler{
 	public void setIsInCheck(boolean[] newVals){
 		isInCheck = newVals;
 	}
+	public void setIsInCheckMate(boolean[] newVals){
+		isInCheckMate = newVals;
+	}
 	private void resetHeld(){
 		heldId = -1;
 		heldSquare = -1;
+	}
+	public void setProSelect(int selectedId, int turn){
+		proSelectId = 10-selectedId - 6*turn;
+	}
+
+	public int promotionAvail(int turn){
+		int result = -1;
+		for(int i = 0; i  < 8; i++){
+			if(bitBoards[11-(6*turn)][i + 56*turn]){
+				result = i;
+			}
+		}
+		return result;
+	}
+
+	public void promote(int turn, int promotingFile){
+		bitBoards[11-(6*turn)][promotingFile + 56*turn] = false;
+		bitBoards[6-(6*turn)][promotingFile + 56*turn] = false;
+		setPieceId(promotingFile + 56*turn, proSelectId);
+	}
+
+	public void queryCheckmate(int col){
+		isInCheckMate[col==0?0:1] = moves.checkmate(col);
+		boolean cantGo = isInCheckMate[0] || isInCheckMate[1];
+		if(cantGo){
+			board.declareWinner(isInCheckMate[1], cantGo && !isInCheck[0] && !isInCheck[1]);
+		}
 	}
 
 	//input - int referring to square		output - boolean indicating successful placing
 	public boolean placeHeld(int square){
 		boolean result = false;
-		if(moves.validateTurn(square)){
+		 int turn = board.getTurn()?0:1;
+		if(moves.validateTurn(square, heldSquare)){
 			movePiece(square);
 			boolean[] pReset = new boolean[8];
-			passant[board.getTurn()?0:1] = pReset;
+			passant[turn] = pReset;
+			int promotingFile = promotionAvail(turn);
+			if(promotingFile != -1){
+				board.requestSelection();
+			}
 			moves.updateCheck();
 			result = true;
 		} else {
@@ -112,7 +160,6 @@ public class PieceHandler{
 		}
 		resetHeld();
 		return result;
-
 	}
 
 	//input - int referring to square  output - integer : 0 represents black, 6 represents white, -1 if empty

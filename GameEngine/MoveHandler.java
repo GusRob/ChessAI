@@ -36,7 +36,7 @@ public class MoveHandler{
 
 		//check kings arent checking each other throw error
 		if(Math.abs(kingX - oppKingX) < 2 && Math.abs(kingY - oppKingY) < 2 ){
-			System.exit(0x10);
+			result=true;
 		}
 		//check for linear moving pieces
 		boolean[][] directions = new boolean[3][3];
@@ -98,34 +98,50 @@ public class MoveHandler{
 				}
 			}
 		}
+		return result;
+	}
 
+	public boolean checkmate(int col){
+		boolean result = true;
+		for(int i = 0; i < 64 && result; i++){
+			int pieceColor = pieces.getPieceColor(i);
+			int pieceId = pieces.getPieceId(i);
+			if(pieceId != -1 && pieceColor == col){
+				for(int j = 0; j < 64 && result; j++){
+					if(validateTurn(j, i)){
+						result = false;
+					}
+				}
+			}
+		}
 		return result;
 	}
 
 	//input - square that the held piece, stored in this classes reference to piecehandler is to move to
 	//output - true if that move is legal, false if that move isnt
-	public boolean validateTurn(int square){
+	public boolean validateTurn(int square, int heldSquare){
 		boolean result = true;
 		int turn = pieces.board.getTurn()?6:0;
-		int heldSquare = pieces.getHeldSquare();
 		int heldColor = pieces.getPieceColor(heldSquare);
 		int heldId = pieces.getPieceId(heldSquare);
 		if(square == heldSquare || heldColor == pieces.getPieceColor(square)){ //basic move laws
 			result = false;
 		}
 		//specific piece movement laws
-		if(heldId == 5 || heldId == 11){
-			result = result && validatePawn(square, heldSquare, heldColor);
-		} else if(heldId == 4 || heldId == 10){
-			result = result && validateQueen(square, heldSquare);
-		} else if(heldId == 3 || heldId == 9){
-			result = result && validateBishop(square, heldSquare);
-		} else if(heldId == 2 || heldId == 8){
-			result = result && validateKnight(square, heldSquare);
-		} else if(heldId == 1 || heldId == 7){
-			result = result && validateRook(square, heldSquare);
-		} else if(heldId == 0 || heldId == 6){
-			result = result && validateKing(square, heldSquare, heldColor);
+		if(result){
+			if(heldId == 5 || heldId == 11){
+				result = result && validatePawn(square, heldSquare, heldColor);
+			} else if(heldId == 4 || heldId == 10){
+				result = result && validateQueen(square, heldSquare);
+			} else if(heldId == 3 || heldId == 9){
+				result = result && validateBishop(square, heldSquare);
+			} else if(heldId == 2 || heldId == 8){
+				result = result && validateKnight(square, heldSquare);
+			} else if(heldId == 1 || heldId == 7){
+				result = result && validateRook(square, heldSquare);
+			} else if(heldId == 0 || heldId == 6){
+				result = result && validateKing(square, heldSquare, heldColor);
+			}
 		}
 		if(result){
 			boolean[][] resultingBoard = bitBoardsTmp(square, heldColor, heldId, heldSquare);
@@ -157,7 +173,6 @@ public class MoveHandler{
 		boolean result = false;
 		int direction = color==0?1:-1; //if white - direction pos // if black - direction neg
 		int oppColor = color==0?6:0;
-
 		if(squareTo == squareFrom + 8*direction){
 			if(pieces.getPieceColor(squareTo) == -1){
 				// if move is one square forwards && square is empty
@@ -168,7 +183,7 @@ public class MoveHandler{
 				// if move is two squares forwards && both squares are empty && piece is moving from second rank on their side
 				result = true;
 			} else {result = false;}
-		} else if((squareTo == squareFrom + 8*direction + 1 && (int)(squareTo/8) ==(int)((squareTo+1)/8)) || squareTo == squareFrom + 8*direction - 1 && (int)(squareTo/8) ==(int)((squareTo-1)/8)){
+		} else if((squareTo == squareFrom + 8*direction + 1 && (int)(squareFrom/8) ==(int)((squareFrom+1)/8)) || squareTo == squareFrom + 8*direction - 1 && (int)(squareFrom/8) ==(int)((squareFrom-1)/8)){
 			if(pieces.getPieceColor(squareTo) == oppColor){
 				//if move is a forward diagonal, and square contains an opponent piece
 				result = true;
@@ -251,7 +266,7 @@ public class MoveHandler{
 					}
 				}
 			}
-		}
+		} else { result = false;}
 		return result;
 	}
 

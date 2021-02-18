@@ -12,6 +12,10 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	private boolean isMouseDown = false;
 	private boolean isWhiteTurn = true;
 	private boolean isWhiteWinner = false;
+	private boolean isTie = false;
+	private boolean isSelecting = false;
+	private int pieceHover = -1;
+	private boolean isGameOver = false;
 
 	private boolean isClick = false;
 
@@ -50,14 +54,51 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 		g.setColor(Color.BLACK);
 		g.setFont(new Font("Arial", Font.BOLD, 30));
 		g.drawString(isWhiteTurn ? "White's Turn" : "Black's Turn", 10, 550);
-		g.drawString(pieces.getIsInCheck()[isWhiteTurn?1:0] ? "Check" : "", 200, 550);
+		String checkStr = "";
+		if(pieces.getIsInCheck()[isWhiteTurn?1:0]){
+			checkStr = "Check!";
+			if(pieces.getIsInCheckMate()[isWhiteTurn?1:0]){
+				checkStr = "CheckMate!";
+			}
+		}
+		g.drawString(checkStr, 200, 550);
+		if(isSelecting){
+			Graphics2D g2 = (Graphics2D) g;
+			g.setColor(Color.BLACK);
+			g2.fillRoundRect(104, 204, 304, 104, 30, 30);
+			g.setColor(new Color(210, 150, 0));
+			g2.fillRoundRect(106, 206, 300, 100, 25, 25);
+			g.setColor(new Color(115, 60, 0));
+			g2.fillRoundRect(110, 210, 292, 92, 20, 20);
+			g.setColor(new Color(210, 150, 0));
+			g2.fillRoundRect(114, 214, 284, 84, 15, 15);
+			g.setColor(new Color(0F, 0.0F, 0.0F, 0.2F));
+			mouseHover();
+			if(pieceHover != -1){
+				g2.fillRoundRect(118 + (276/4)*pieceHover, 218, (276/4), 76, 10, 10);
+			}
+			pieces.paintSelection(g);
+		}
 	}
 
 	//called with repaint() - triggers paint helper functions
 	public void paint(Graphics g){
 		paintBoard(g);
-		paintUI(g);
 		pieces.paint(g);
+		paintUI(g);
+	}
+
+	//called when user is selecting to update which piece the user's mouse is hovering over
+	public void mouseHover(){
+		int mousePosX = (int)MouseInfo.getPointerInfo().getLocation().getX()-400;
+		int mousePosY = (int)MouseInfo.getPointerInfo().getLocation().getY()-100;
+		if(mousePosY > 215 && mousePosY < 307){
+			for(int i = 0; i < 4; i++){
+				if(mousePosX > 118 + i*(276/4) && mousePosX < 118 + (i+1)*(276/4)){
+					pieceHover = i;
+				}
+			}
+		}
 	}
 
 	//input - MouseEvent  output - integer id of which square the mouse is in, -1 if none
@@ -77,37 +118,64 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 		return result;
 	}
 
+	public void requestSelection(){isSelecting = true;}
+	public void selectionMade(){isSelecting = false;}
+
+	public void declareWinner(boolean isWhiteWinnerVal, boolean isTieVal){
+		isWhiteWinner = isWhiteWinnerVal;
+		isTie = isTieVal;
+		isGameOver = true;
+	}
+
 	//getter functions for Board values
 	public boolean getTurn(){return isWhiteTurn;}
+	public boolean getSelecting(){return isSelecting;}
 
 	//overridden mouseEvent methods
 	public void mouseExited(MouseEvent e){}
 	public void mouseEntered(MouseEvent e){}
 	public void mouseClicked(MouseEvent e){
-		if(!isMouseDown){
-			mousePressed(e);
-		} else {
-			mouseReleased(e);
+		if(!isSelecting && !isGameOver){
+			if(!isMouseDown){
+				mousePressed(e);
+			} else {
+				mouseReleased(e);
+			}
+		} else if (!isGameOver) {
+			if(pieceHover != -1){
+				int inputTurn = isWhiteTurn?1:0;
+				pieces.setProSelect(pieceHover, inputTurn);
+				int promotionFile = pieces.promotionAvail(inputTurn);
+				pieces.promote(inputTurn, promotionFile);
+				selectionMade();
+			}
 		}
 	}
 	public void mousePressed(MouseEvent e){
-		if(!isMouseDown){
-			isMouseDown = true;
-			int square = mouseSquare(e);
-			if(square != -1){
-				int pieceId = pieces.getPieceId(square);
-				if(pieceId != -1 && (pieceId>5 == isWhiteTurn)){
-					pieces.setHeld(pieceId, square);
+		if(!isSelecting && !isGameOver){
+			if(!isMouseDown){
+				isMouseDown = true;
+				int square = mouseSquare(e);
+				if(square != -1){
+					int pieceId = pieces.getPieceId(square);
+					if(pieceId != -1 && (pieceId>5 == isWhiteTurn)){
+						pieces.setHeld(pieceId, square);
+					}
 				}
 			}
+		} else {
+			mouseClicked(e);
 		}
 	}
 	public void mouseReleased(MouseEvent e){
 		isMouseDown = false;
-		int square = mouseSquare(e);
-		if(pieces.getHeldId() != -1){
-			if(pieces.placeHeld(square)){
-				isWhiteTurn = !isWhiteTurn;
+		if(!isGameOver){
+			int square = mouseSquare(e);
+			if(pieces.getHeldId() != -1){
+				if(pieces.placeHeld(square)){
+					isWhiteTurn = !isWhiteTurn;
+					pieces.queryCheckmate(isWhiteTurn?6:0);
+				}
 			}
 		}
 	}
