@@ -57,21 +57,34 @@ public class PieceHandler{
 	}
 
 	//function called from board class to draw pieces to canvas
-	public void paint(Graphics g){
+	public void paint(Graphics g, boolean isPlayerWhite){
 		for(int p = 0; p<12; p++){
 			if(p != 0 && p!= 6){
 				for(int i = 0; i<64; i++){
 					if(bitBoards[p][i] && i != heldSquare){
-						g.drawImage(pieceImages[p], 2+(i%8)*64, 2+(int)(i/8)*64, board);
+						if(isPlayerWhite){
+							g.drawImage(pieceImages[p], 2+(i%8)*64, 2+(int)(i/8)*64, board);
+						} else {
+							g.drawImage(pieceImages[p], 2+((63-i)%8)*64, 2+(int)((63-i)/8)*64, board);
+						}
 					}
 				}
 			}
 		}
 		if(heldId != 0){
-			g.drawImage(pieceImages[0], 2+(blKing%8)*64, 2+(int)(blKing/8)*64, board);
+			if(isPlayerWhite){
+				g.drawImage(pieceImages[0], 2+(blKing%8)*64, 2+(int)(blKing/8)*64, board);
+			} else {
+				g.drawImage(pieceImages[0], 2+((63-blKing)%8)*64, 2+(int)((63-blKing)/8)*64, board);
+			}
 		}
 		if(heldId != 6){
-			g.drawImage(pieceImages[6], 2+(whKing%8)*64, 2+(int)(whKing/8)*64, board);
+			if(isPlayerWhite){
+				g.drawImage(pieceImages[6], 2+(whKing%8)*64, 2+(int)(whKing/8)*64, board);
+			} else {
+				g.drawImage(pieceImages[6], 2+((63-whKing)%8)*64, 2+(int)((63-whKing)/8)*64, board);
+
+			}
 		}
 		if(heldId != -1){
 			int mouseX = (int)Math.round(MouseInfo.getPointerInfo().getLocation().getX()) - 432;
@@ -128,6 +141,23 @@ public class PieceHandler{
 			}
 		}
 		return result;
+	}
+
+	//function called to reset all piece values to initial states
+	public void resetAll(){
+		bitBoards = new boolean[12][64];
+		blKing = 4;
+		whKing = 60;
+		heldId = -1;
+		heldSquare = -1;
+		castles[0][0] =	true;
+		castles[0][1] =	true;
+		castles[1][0] =	true;
+		castles[1][1] =	true;
+		passant =	new boolean[2][8];
+		isInCheck =	new boolean[2];
+		isInCheckMate =	new boolean[2];
+		setupBoard();
 	}
 
 	//function called to change the pawn being promoted into the piece selected
@@ -352,6 +382,7 @@ public class PieceHandler{
 
 	//function called upon pieceHandler instantiation to populate bitboards with set of pieces
 	private void setupBoard(){
+		bitBoards = new boolean[12][64];
 		//populate bitBoards
 		for(int i = 8; i < 16; i++){
 			bitBoards[5][i] = true;		//black pawns
