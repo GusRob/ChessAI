@@ -45,3 +45,10 @@
     * castling laws
     * computer opponent
 
+2021/02/18
+  * En passant, castling and piece promotion have all been implemented to the main game
+  * Additional UI components, such as a 'pause' menu and a starting menu have been created
+  * Implemented the functionality to be able to flip the board, meaning once an opponent has been created, the user can play as either colour
+  * initial basis of the project is done, next to implement is an opponent that can generate a list of legal moves and randomly chooses one
+  * also to implement is a history/move list of moves made, should make troubleshooting easier in the event of bugs
+
