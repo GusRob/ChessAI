@@ -1,7 +1,7 @@
 # ChessAI
 
 ## This repository will consist of a self project in which i will attempt to:
-  *  - [ ] Create a functioning game engine for a standard 2D chess game
+  *  - [X] Create a functioning game engine for a standard 2D chess game
   *  - [ ] Develop a basic cpu opponent to play against
   *  - [ ] Evolve the cpu opponent to use more and more advanced concepts and as such be harder to beat
 
