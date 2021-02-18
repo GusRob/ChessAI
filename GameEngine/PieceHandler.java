@@ -90,6 +90,8 @@ public class PieceHandler{
 	public int getWhKing(){return whKing;}
 	public boolean getPassant(int a, int b){return passant[a][b];}
 	public boolean getCastles(int a, int b){return castles[a][b];}
+
+	//function to return a bitBoard duplicate to allow check tested etc without editting current board
 	public boolean[][] getBitBoardsCopy(){
 		boolean[][] result = new boolean[12][64];
 		for(int i = 0; i<bitBoards.length; i++){
@@ -117,6 +119,7 @@ public class PieceHandler{
 		proSelectId = 10-selectedId - 6*turn;
 	}
 
+	//function checks to see if a pawn can be promoted
 	public int promotionAvail(int turn){
 		int result = -1;
 		for(int i = 0; i  < 8; i++){
@@ -127,12 +130,14 @@ public class PieceHandler{
 		return result;
 	}
 
+	//function called to change the pawn being promoted into the piece selected
 	public void promote(int turn, int promotingFile){
 		bitBoards[11-(6*turn)][promotingFile + 56*turn] = false;
 		bitBoards[6-(6*turn)][promotingFile + 56*turn] = false;
 		setPieceId(promotingFile + 56*turn, proSelectId);
 	}
 
+	//function to call the movehandler checkmate and respond accordingly
 	public void queryCheckmate(int col){
 		isInCheckMate[col==0?0:1] = moves.checkmate(col);
 		boolean cantGo = isInCheckMate[0] || isInCheckMate[1];

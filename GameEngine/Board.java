@@ -17,8 +17,6 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	private int pieceHover = -1;
 	private boolean isGameOver = false;
 
-	private boolean isClick = false;
-
 	// in order of arrays - Black Pieces; rooks; knights; bishops; queens; pawns; White Pieces; same order
 	//									Black				0				1				2				3				4				5
 	//									White				6				7				8				9				10			11
@@ -50,7 +48,7 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 
 	//paints the UI incl. which colour's turn and move list?
 	private void paintUI(Graphics g){
-		//draws the UI components every time the game world is updated
+		Graphics2D g2 = (Graphics2D) g;
 		g.setColor(Color.BLACK);
 		g.setFont(new Font("Arial", Font.BOLD, 30));
 		g.drawString(isWhiteTurn ? "White's Turn" : "Black's Turn", 10, 550);
@@ -61,9 +59,12 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 				checkStr = "CheckMate!";
 			}
 		}
+		if(isTie){
+			checkStr = "StaleMate";
+		}
 		g.drawString(checkStr, 200, 550);
-		if(isSelecting){
-			Graphics2D g2 = (Graphics2D) g;
+
+		if(isSelecting || isGameOver){
 			g.setColor(Color.BLACK);
 			g2.fillRoundRect(104, 204, 304, 104, 30, 30);
 			g.setColor(new Color(210, 150, 0));
@@ -72,6 +73,22 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 			g2.fillRoundRect(110, 210, 292, 92, 20, 20);
 			g.setColor(new Color(210, 150, 0));
 			g2.fillRoundRect(114, 214, 284, 84, 15, 15);
+		}
+		g.setColor(Color.BLACK);
+		String winString = "";
+		if(isGameOver){
+			if(isTie){
+				winString = "Nobody Wins";
+			} else {
+				if(isWhiteWinner){
+					winString = "White Wins";
+				} else {
+					winString = "Black Wins";
+				}
+			}
+		}
+		g.drawString(winString, 180, 270);
+		if(isSelecting){
 			g.setColor(new Color(0F, 0.0F, 0.0F, 0.2F));
 			mouseHover();
 			if(pieceHover != -1){
@@ -79,6 +96,8 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 			}
 			pieces.paintSelection(g);
 		}
+		g.setColor(new Color(210, 150, 0));
+
 	}
 
 	//called with repaint() - triggers paint helper functions
@@ -118,9 +137,13 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 		return result;
 	}
 
+	//called when a pawn is at the end of the board, to make the UI request a promotion selection
 	public void requestSelection(){isSelecting = true;}
+
+	//called when a selection has been made to close the selection popup
 	public void selectionMade(){isSelecting = false;}
 
+	//called when a 'checkmate' is detected, sets gameover etc
 	public void declareWinner(boolean isWhiteWinnerVal, boolean isTieVal){
 		isWhiteWinner = isWhiteWinnerVal;
 		isTie = isTieVal;

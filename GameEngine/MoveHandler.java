@@ -101,6 +101,10 @@ public class MoveHandler{
 		return result;
 	}
 
+	//IMPORTANT
+	//function slightly misleadingly named - it doesnt just detect checkmates, also stalemates
+	//input - the integer colour to detect checkmates for
+	//output - boolean, true IF THAT COLOUR CANNOT MOVE, false otherwise
 	public boolean checkmate(int col){
 		boolean result = true;
 		for(int i = 0; i < 64 && result; i++){
@@ -150,6 +154,8 @@ public class MoveHandler{
 		return result;
 	}
 
+	//input - integer square to move to, held piece colour id and qhich square theyre moving from
+	//output - a copy of the current bitBoard with the move being attempted made, used for check detecting
 	private boolean[][] bitBoardsTmp(int square, int heldColor, int heldId, int heldSquare){
 		int oppHeldColor = heldColor==0?6:0;
 		boolean[][] resultingBoard = pieces.getBitBoardsCopy();
