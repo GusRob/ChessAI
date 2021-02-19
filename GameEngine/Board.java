@@ -20,6 +20,8 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	private int menuHover = -1;
 	private boolean isNewGame = true;
 	private boolean isPlayerWhite = true;
+	private boolean isCompMoving = false;
+
 
 	// in order of arrays - Black Pieces; rooks; knights; bishops; queens; pawns; White Pieces;
 	//									Black				0				1				2				3				4				5
@@ -27,6 +29,7 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	javax.swing.Timer t = new javax.swing.Timer(10, this);
 
 	PieceHandler pieces = new PieceHandler(this);
+	Thoth thoth = new Thoth(pieces, 0);
 
 	//constructor starts timer t adds mouselistener and calls paint method for first time
 	public Board(){
@@ -231,6 +234,7 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	//getter functions for Board values
 	public boolean getTurn(){return isWhiteTurn;}
 	public boolean getSelecting(){return isSelecting;}
+	public boolean getIsPlayerWhite(){return isPlayerWhite;}
 
 	//overridden mouseEvent methods
 	public void mouseExited(MouseEvent e){}
@@ -257,6 +261,10 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 			} else if(menuHover == 1){ //newGame
 				isNewGame = true;
 				pieces.resetAll();
+				isWhiteTurn = true;
+				isWhiteWinner = false;
+				isTie = false;
+				isGameOver = false;
 				isMenuOpen = false;
 			} else if(menuHover == 2){ //fun button
 				//do nothing
@@ -265,11 +273,13 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 			}
 		} else if(isNewGame){
 			if(menuHover == 0){ //Start
+				thoth = new Thoth(pieces, isPlayerWhite?0:6);
 				isNewGame = false;
 			} else if(menuHover == 1){ //not a button
 				//do nothing
 			} else if(menuHover == 2){ //Change color
 				isPlayerWhite = !isPlayerWhite;
+				//thoth = new Thoth(pieces, isPlayerWhite?0:6);
 			} else if(menuHover == 3){ //exit game
 				System.exit(0);
 			}
@@ -296,10 +306,12 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 		isMouseDown = false;
 		if(!isGameOver && !isMenuOpen){
 			int square = mouseSquare(e);
-			if(pieces.getHeldId() != -1){
-				if(pieces.placeHeld(square)){
-					isWhiteTurn = !isWhiteTurn;
-					pieces.queryCheckmate(isWhiteTurn?6:0);
+			if(square != -1){
+				if(pieces.getHeldId() != -1){
+					if(pieces.placeHeld(square)){
+						isWhiteTurn = !isWhiteTurn;
+						pieces.queryCheckmate(isWhiteTurn?6:0);
+					}
 				}
 			}
 		}
@@ -307,8 +319,35 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 
 	//overridden actionEvent method
 	//called every 10 milliseconds - updates the graphics window
+	//also calls computer opponent to make move when it is their turn
 	public void actionPerformed(ActionEvent e){
 		repaint();
+		if(!isMenuOpen && !isGameOver && !isNewGame){
+			if(((isPlayerWhite && !isWhiteTurn) || (!isPlayerWhite && isWhiteTurn)) && !isSelecting){
+				if(!isCompMoving){
+					isCompMoving = true;
+					int[] move = thoth.chooseFirstMove();
+					if(move[0] != -1){
+						int pieceId = pieces.getPieceId(move[0]);
+						if(pieceId != -1 && (pieceId>5 == isWhiteTurn)){
+							pieces.setHeld(pieceId, move[0]);
+							if(pieces.placeHeld(move[1])){
+								isWhiteTurn = !isWhiteTurn;
+								pieces.queryCheckmate(isWhiteTurn?6:0);
+								isCompMoving = false;
+							}
+						}
+					}
+				}
+			} else if(isSelecting && !((isPlayerWhite && !isWhiteTurn) || (!isPlayerWhite && isWhiteTurn))){
+				int compHover = thoth.choosePromotion();
+				int inputTurn = isWhiteTurn?1:0;
+				pieces.setProSelect(compHover, inputTurn);
+				int promotionFile = pieces.promotionAvail(inputTurn);
+				pieces.promote(inputTurn, promotionFile);
+				selectionMade();
+			}
+		}
 	}
 
 }
