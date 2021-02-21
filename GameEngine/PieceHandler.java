@@ -172,7 +172,7 @@ public class PieceHandler{
 		isInCheckMate[col==0?0:1] = moves.checkmate(col);
 		boolean cantGo = isInCheckMate[0] || isInCheckMate[1];
 		if(cantGo){
-			board.declareWinner(isInCheckMate[1], cantGo && !isInCheck[0] && !isInCheck[1]);
+			board.declareWinner(isInCheckMate[0], cantGo && !isInCheck[0] && !isInCheck[1]);
 		}
 	}
 

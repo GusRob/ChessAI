@@ -6,7 +6,7 @@ import javax.swing.*;
 
 
 //class is used to make moves as a computer controlled opponent
-public class Thoth{
+public class Thoth implements Computer{
 
 	private PieceHandler pieces;
 
