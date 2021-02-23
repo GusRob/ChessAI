@@ -4,6 +4,17 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+enum Player {
+  USER,
+  THOTH,
+  THOTH2 {public Player next(){return USER;};};
+
+	public Player next() {
+    return values()[ordinal() + 1];
+  }
+}
 
 //this class handles drawing to the window and user interaction events
 public class Board extends JPanel implements MouseListener, ActionListener{
@@ -19,24 +30,51 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	private boolean isMenuOpen = false;
 	private int menuHover = -1;
 	private boolean isNewGame = true;
-	private boolean isPlayerWhite = true;
+	private Player playerWhite = Player.USER;
+	private Player playerBlack = Player.THOTH;
+  private boolean isPlayerMove = false;
+	private boolean isWhiteAtTop = false;
+	private boolean botGame = false;
+	private int count = 0;
+  private int[] wins = {0, 0, 0};
 
+  ArrayList<int[]> movesMade = new ArrayList<int[]>();
+  private int turnNo = 0;
+
+  private int gamesLeft = 0;
 
 	// in order of arrays - Black Pieces; rooks; knights; bishops; queens; pawns; White Pieces;
 	//									Black				0				1				2				3				4				5
 	//									White				6				7				8				9				10			11
-	javax.swing.Timer t = new javax.swing.Timer(10, this);
+	javax.swing.Timer t = new javax.swing.Timer(1, this);
 
 	PieceHandler pieces = new PieceHandler(this);
-	Thoth thoth = new Thoth(pieces, 0);
+	Computer botBlack = new Thoth(pieces, 0);
+	Computer botWhite = new Thoth(pieces, 0);
 
 	//constructor starts timer t adds mouselistener and calls paint method for first time
-	public Board(){
+	public Board(int noOfGames, int initBlack, int initWhite){
 		//constructor initiates game pieces
 		t.start();
 
+    gamesLeft = noOfGames;
+
+    switch(initBlack){
+      case 0: playerBlack = Player.THOTH; break;
+      case 1: playerBlack = Player.THOTH2; break;
+      case 2: playerBlack = Player.THOTH; break;
+    }
+    switch(initWhite){
+      case 0: playerWhite = Player.THOTH; break;
+      case 1: playerWhite = Player.THOTH2; break;
+      case 2: playerBlack = Player.THOTH; break;
+    }
+
 		addMouseListener(this);
 		repaint();
+    if(gamesLeft > 0){
+      startNewGame();
+    }
 	}
 
 	//paints the dark and light tiles making up the board
@@ -61,7 +99,7 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 		String checkStr = "";
 		if(pieces.getIsInCheck()[isWhiteTurn?1:0]){
 			checkStr = "Check!";
-			if(pieces.getIsInCheckMate()[isWhiteTurn?1:0]){
+			if(pieces.getIsInCheckMate()[0] || pieces.getIsInCheckMate()[1]){
 				checkStr = "CheckMate!";
 			}
 		}
@@ -97,7 +135,6 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 		}
 		g.setColor(new Color(210, 150, 0));
 		g.fill3DRect(437, 512, 75, 50, true);
-		g.fill3DRect(362, 512, 75, 50, true);
 		g.setColor(Color.BLACK);
 		g.fillRect(460, 522, 10, 30);
 		g.fillRect(480, 522, 10, 30);
@@ -122,17 +159,27 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 			paintPopupWindow(g, 150, 100, 200, 300);
 			g.setColor(new Color(0F, 0.0F, 0.0F, 0.2F));
 			mouseHover();
-			if(Math.abs(menuHover) != 1){
+			if(menuHover != -1){
 				g2.fillRoundRect(168, 118 +(276/4)*menuHover, 176, (276/4), 10, 10);
 			}
 			g.setColor(Color.BLACK);
 			Rectangle bounds = new Rectangle(168, 118, 176, 276/4);
+			Rectangle boundsHi = new Rectangle(168, 118, 176, (int)276/8);
+			Rectangle boundsLo = new Rectangle(168, 118 + (int)276/8, 176, (int)276/8);
 			drawCenteredString(g, "Start", bounds, new Font("Arial", Font.BOLD, 30));
 			bounds.y += 276/4;
-			drawCenteredString(g, "Color:", bounds, new Font("Arial", Font.PLAIN, 30));
+			boundsHi.y += 276/4;
+			boundsLo.y += 276/4;
+			drawCenteredString(g, "Black:", boundsHi, new Font("Arial", Font.PLAIN, 30));
+			drawCenteredString(g, playerBlack.name() ,boundsLo, new Font("Arial", Font.PLAIN, 30));
 			bounds.y += 276/4;
-			drawCenteredString(g, isPlayerWhite?"White":"Black", bounds, new Font("Arial", Font.PLAIN, 30));
+			boundsHi.y += 276/4;
+			boundsLo.y += 276/4;
+			drawCenteredString(g, "White:", boundsHi, new Font("Arial", Font.PLAIN, 30));
+			drawCenteredString(g, playerWhite.name() ,boundsLo, new Font("Arial", Font.PLAIN, 30));
 			bounds.y += 276/4;
+			boundsHi.y += 276/4;
+			boundsLo.y += 276/4;
 			drawCenteredString(g, "Exit", bounds, new Font("Arial", Font.PLAIN, 30));
 		}
 	}
@@ -162,8 +209,11 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	//called with repaint() - triggers paint helper functions
 	public void paint(Graphics g){
 		paintBoard(g);
-		pieces.paint(g, isPlayerWhite);
+		pieces.paint(g, !isWhiteAtTop);
 		paintUI(g);
+		if(botGame && !isMenuOpen && !isGameOver && !isNewGame){
+			botGame();
+		}
 	}
 
 	//called when user is selecting to update which piece the user's mouse is hovering over
@@ -210,8 +260,7 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 				result = i;
 			}
 		}
-
-		if(!isPlayerWhite && result != -1){
+		if(isWhiteAtTop && result != -1){
 			result = 63-result;
 		}
 		return result;
@@ -228,17 +277,55 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 		isWhiteWinner = isWhiteWinnerVal;
 		isTie = isTieVal;
 		isGameOver = true;
+    String checkStr = "";
+    if(isWhiteWinnerVal){
+      checkStr = "White Wins!";
+    } else if(!isWhiteWinnerVal){
+      checkStr = "Black Wins!";
+    }
+    if(isTie){
+      checkStr = "StaleMate";
+    }
+    if(checkStr == ""){while(true){}}
+    System.out.println(checkStr + " : " + (gamesLeft-1) + " games left");
+    if(checkStr.equals("StaleMate")){
+      wins[2]++;
+    } else if(checkStr.equals("White Wins!")){
+      wins[1]++;
+    } else if(checkStr.equals("Black Wins!")){
+      wins[0]++;
+    }
+    gamesLeft--;
+    if(gamesLeft > 0){
+      isNewGame = true;
+      pieces.resetAll();
+      isWhiteTurn = true;
+      isWhiteWinner = false;
+      isTie = false;
+      isGameOver = false;
+      isMenuOpen = false;
+      isPlayerMove = false;
+      movesMade = new ArrayList<int[]>();
+      turnNo = 0;
+      startNewGame();
+    } else {
+      System.out.println("White won: " + wins[1] + " games");
+      System.out.println("Black won: " + wins[0] + " games");
+      System.out.println("Stalemates: " + wins[2] + " games");
+    }
 	}
 
 	//calls for a turn from the ai
 	public void makeBotTurn(Computer bot){
-		int[] move = bot.chooseFirstMove();
+		int[] move = bot.chooseMove();
 		if(move[0] != -1){
 			int pieceId = pieces.getPieceId(move[0]);
 			if(pieceId != -1 && (pieceId>5 == isWhiteTurn)){
 				pieces.setHeld(pieceId, move[0]);
 				if(pieces.placeHeld(move[1])){
-					pieces.queryCheckmate(isWhiteTurn?6:0);
+          movesMade.add(move);
+					pieces.queryCheckmate();
+          turnNo++;
 				}
 			}
 		}
@@ -248,24 +335,90 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 			pieces.setProSelect(compHover, inputTurn);
 			int promotionFile = pieces.promotionAvail(inputTurn);
 			pieces.promote(inputTurn, promotionFile);
+      pieces.queryCheckmate();
 			selectionMade();
 		}
-		nextTurn();
 	}
 
 	//called to change isWhiteTurn and call the AI to move if it is their turn
 	public void nextTurn(){
 		isWhiteTurn = !isWhiteTurn;
-		if(isWhiteTurn != isPlayerWhite){
-			//call ai to make a turn
-			makeBotTurn(thoth);
+		if(isWhiteTurn && playerWhite == Player.USER){
+			isPlayerMove = true;
+		} else if(!isWhiteTurn && playerBlack== Player.USER){
+			isPlayerMove = true;
+		} else { //call ai
+			makeBotTurn(isWhiteTurn?botWhite:botBlack);
+			nextTurn();
+		}
+		rotateBoard();
+	}
+
+	//called when two bots are playing, to take each turn
+	public void botGame(){
+		botGame = true;
+		count++;
+		if(count > 1){
+			count = 0;
+			isWhiteTurn = !isWhiteTurn;
+			makeBotTurn(isWhiteTurn?botWhite:botBlack);
+		}
+	}
+
+  //method to print list of moves made to console for error checking
+  public void printGame(){
+    for(int i = 0; i < turnNo-1; i++){
+      System.out.println(movesMade.get(i)[0] + "->" + movesMade.get(i)[1]);
+    }
+  }
+
+  //board is flipped if user is both colors
+	public void rotateBoard(){
+		boolean isWhiteUser = (playerWhite == Player.USER);
+		boolean isBlackUser = (playerBlack == Player.USER);
+		if(isBlackUser == isWhiteUser){
+			isWhiteAtTop = !isWhiteTurn;
+		}
+		if(isNewGame){
+			isWhiteAtTop = false;
 		}
 	}
 
 	//getter functions for Board values
 	public boolean getTurn(){return isWhiteTurn;}
 	public boolean getSelecting(){return isSelecting;}
-	public boolean getIsPlayerWhite(){return isPlayerWhite;}
+
+  public void startNewGame(){
+    switch(playerBlack){
+      case THOTH:
+        botBlack = new Thoth(pieces, 0);
+       break;
+      case THOTH2:
+        botBlack = new Thoth(pieces, 0);
+       break;
+    }
+    switch(playerWhite){
+      case THOTH:
+        botWhite = new Thoth(pieces, 6);
+       break;
+      case THOTH2:
+        botWhite = new Thoth(pieces, 6);
+       break;
+    }
+    isNewGame = false;
+    isWhiteTurn = false;
+    if((playerWhite == Player.USER)){
+      isWhiteAtTop = false;
+    } else if((playerBlack == Player.USER)){
+      isWhiteAtTop = true;
+    }
+    if(!(playerWhite == Player.USER) && !(playerBlack == Player.USER)){
+      botGame();
+    } else {
+      botGame = false;
+      nextTurn();
+    }
+  }
 
 	//overridden mouseEvent methods
 	public void mouseExited(MouseEvent e){}
@@ -297,6 +450,10 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 				isTie = false;
 				isGameOver = false;
 				isMenuOpen = false;
+				isPlayerMove = false;
+        movesMade = new ArrayList<int[]>();
+        turnNo = 0;
+
 			} else if(menuHover == 2){ //fun button
 				//do nothing
 			} else if(menuHover == 3){ //exit game
@@ -304,16 +461,11 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 			}
 		} else if(isNewGame){
 			if(menuHover == 0){ //Start
-				thoth = new Thoth(pieces, isPlayerWhite?0:6);
-				isNewGame = false;
-				if(isPlayerWhite != isWhiteTurn){
-					makeBotTurn(thoth);
-				}
-			} else if(menuHover == 1){ //not a button
-				//do nothing
-			} else if(menuHover == 2){ //Change color
-				isPlayerWhite = !isPlayerWhite;
-				//thoth = new Thoth(pieces, isPlayerWhite?0:6);
+        startNewGame();
+			} else if(menuHover == 1){ //change black player
+				playerBlack = playerBlack.next();
+			} else if(menuHover == 2){ //Change white player
+				playerWhite = playerWhite.next();
 			} else if(menuHover == 3){ //exit game
 				System.exit(0);
 			}
@@ -323,7 +475,7 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 		}
 	}
 	public void mousePressed(MouseEvent e){
-		if(!isSelecting && !isGameOver && !isMenuOpen && (isWhiteTurn == isPlayerWhite)){
+		if(!isSelecting && !isGameOver && !isMenuOpen && isPlayerMove){
 			if(!isMouseDown){
 				isMouseDown = true;
 				int square = mouseSquare(e);
@@ -342,8 +494,11 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 			int square = mouseSquare(e);
 			if(square != -1){
 				if(pieces.getHeldId() != -1){
+          int[] move = {pieces.getHeldSquare(), square};
 					if(pieces.placeHeld(square)){
-						pieces.queryCheckmate(isWhiteTurn?0:6);
+						pieces.queryCheckmate();
+            movesMade.add(move);
+            turnNo++;
 						nextTurn();
 					}
 				}

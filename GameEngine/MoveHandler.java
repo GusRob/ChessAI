@@ -40,7 +40,7 @@ public class MoveHandler{
 		}
 		//check for linear moving pieces
 		boolean[][] directions = new boolean[3][3];
-		for(int n = 1; n<7; n++){
+		for(int n = 1; n<8; n++){
 			for(int i = -1; i<2; i++){
 				for(int j = -1; j<2; j++){
 					if(!directions[i+1][j+1]){
@@ -102,18 +102,17 @@ public class MoveHandler{
 	}
 
 	//IMPORTANT
-	//function slightly misleadingly named - it doesnt just detect checkmates, also stalemates
 	//input - the integer colour to detect checkmates for
-	//output - boolean, true IF THAT COLOUR CANNOT MOVE, false otherwise
-	public boolean checkmate(int col){
-		boolean result = true;
-		for(int i = 0; i < 64 && result; i++){
+	//output - boolean, true if there is a possible move false otherwise
+	public boolean ableToMove(int color){
+		boolean result = false;
+		for(int i = 0; i < 64 && !result; i++){
 			int pieceColor = pieces.getPieceColor(i);
 			int pieceId = pieces.getPieceId(i);
-			if(pieceId != -1 && pieceColor == col){
-				for(int j = 0; j < 64 && result; j++){
+			if(pieceId != -1 && (pieceColor == color)){
+				for(int j = 0; j < 64 && !result; j++){
 					if(validateTurn(j, i)){
-						result = false;
+						result = true;
 					}
 				}
 			}
@@ -258,18 +257,23 @@ public class MoveHandler{
 		} else if (yDiff == 0 && xDiff == 2){ //castling laws
 			int direction = (squareTo>squareFrom?1:-1);
 			if(pieces.getCastles(color==0?0:1, direction==1?1:0)){
-				for(int i = 1; i < 5; i++){
+				boolean isAnyPiecesBetween = false;
+				for(int i = 1; i < Math.abs(squareFrom-squareTo); i++){
 					int midSqCol = pieces.getPieceId(squareFrom+(i*direction));
 					if( midSqCol  != -1 ){
-						if(midSqCol == 1 + color){
-							boolean[][] bitBoards_tmp1 = bitBoardsTmp(squareTo, color, color, squareFrom);
-							boolean[][] bitBoards_tmp2 = bitBoardsTmp(squareFrom + direction, color, color, squareFrom);
-							boolean check1 = check(color, bitBoards_tmp1);
-							boolean check2 = check(color, bitBoards_tmp2);
-							result = !check1 && !check2;
-						} else {result = false;}
+						isAnyPiecesBetween = true;
+						result = false;
 						i = 5;
 					}
+				}
+				if(!isAnyPiecesBetween){
+					boolean[][] bitBoards_tmp1 = bitBoardsTmp(squareTo, color, color, squareFrom);
+					boolean[][] bitBoards_tmp2 = bitBoardsTmp(squareFrom + direction, color, color, squareFrom);
+					boolean[][] bitBoards_tmp3 = bitBoardsTmp(squareFrom, color, color, squareFrom);
+					boolean check1 = check(color, bitBoards_tmp1);
+					boolean check2 = check(color, bitBoards_tmp2);
+					boolean check3 = check(color, bitBoards_tmp2);
+					result = !check1 && !check2 && !check3;
 				}
 			}
 		} else { result = false;}

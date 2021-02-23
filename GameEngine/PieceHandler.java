@@ -107,8 +107,10 @@ public class PieceHandler{
 	//function to return a bitBoard duplicate to allow check tested etc without editting current board
 	public boolean[][] getBitBoardsCopy(){
 		boolean[][] result = new boolean[12][64];
-		for(int i = 0; i<bitBoards.length; i++){
-			result[i] = Arrays.copyOf(bitBoards[i], 64);
+		for(int i = 0; i<12; i++){
+			for(int j = 0; j < 64; j++){
+				result[i][j] = bitBoards[i][j];
+			}
 		}
 		return result;
 	}
@@ -145,7 +147,6 @@ public class PieceHandler{
 
 	//function called to reset all piece values to initial states
 	public void resetAll(){
-		bitBoards = new boolean[12][64];
 		blKing = 4;
 		whKing = 60;
 		heldId = -1;
@@ -168,11 +169,35 @@ public class PieceHandler{
 	}
 
 	//function to call the movehandler checkmate and respond accordingly
-	public void queryCheckmate(int col){
-		isInCheckMate[col==0?0:1] = moves.checkmate(col);
-		boolean cantGo = isInCheckMate[0] || isInCheckMate[1];
-		if(cantGo){
-			board.declareWinner(isInCheckMate[0], cantGo && !isInCheck[0] && !isInCheck[1]);
+	public void queryCheckmate(){
+		board.repaint();
+		boolean isBlackAbleToMove = moves.ableToMove(0);
+		boolean isWhiteAbleToMove = moves.ableToMove(6);
+		isInCheckMate[0] = !isBlackAbleToMove && isInCheck[0];
+		isInCheckMate[1] = !isWhiteAbleToMove && isInCheck[1];
+		boolean isTie = (!board.getTurn() && !isBlackAbleToMove && !isInCheck[0]) || (board.getTurn() && !isWhiteAbleToMove && !isInCheck[0]);
+		int n = 0;
+		for(int i = 0; i < 64; i++){
+			if(bitBoards[0][i] || bitBoards[6][i]){
+				n++;
+			}
+		}
+		if(n == 2){
+			isTie = true;
+		}
+		if(isInCheckMate[0] || isInCheckMate[1] || isTie){
+			/*System.out.println(isTie?"tie":((isInCheckMate[0]?"white ":"black ") + "cant go"));
+			System.out.println("isBlackAbleToMove " + moves.ableToMove(0, true) );
+			System.out.println("isWhiteAbleToMove " + moves.ableToMove(6, true) );
+			System.out.println("isInCheckMate[0] " + isInCheckMate[0] );
+			System.out.println("isInCheckMate[1] " + isInCheckMate[1] );
+			System.out.println("isTie " + isTie );
+			System.out.println("Board Dump:");
+			for(int i = 0; i < 64; i++){
+				System.out.print(getPieceId(i) + " ");
+				if(i % 8 == 7){System.out.println();}
+			}*/
+			board.declareWinner(isInCheckMate[1], isTie);
 		}
 	}
 
@@ -347,7 +372,8 @@ public class PieceHandler{
 			} else { result = -1; }
 		}
 		if(result == -1){
-			System.exit(0x03);
+			//System.exit(0x03);
+			while(true){}
 		}
 		generateColorSets();
 	}

@@ -12,5 +12,5 @@ public interface Computer{
 
   public int choosePromotion();
 
-  public int[] chooseFirstMove();
+  public int[] chooseMove();
 }
