@@ -2,8 +2,9 @@
 
 ## This repository will consist of a self project in which i will attempt to:
   *  - [X] Create a functioning game engine for a standard 2D chess game
-  *  - [ ] Develop a basic cpu opponent to play against human and itself
+  *  - [X] Develop a basic cpu opponent to play against human and itself
   *  - [ ] Evolve the cpu opponent to use more and more advanced concepts and as such be harder to beat
+  *  - [ ] Allow the user to decide the difficulty of the game by deciding search depth and time limit
 
 ## Milestone Log
 
@@ -66,3 +67,14 @@
     * Allowing the user to select a bot to play instead of themself
     * Allowing the user to select a speed for the bots to play at, else for an efficient/fast bot the game will be over in < a second, which isnt always useful
 
+2021/02/21
+  * Allowed for the user to cycle between bots vs human players for each colour
+  * Implemented a 'test' mode for the make file, caled with make test which plays 100 games of the bot against itself
+  * The program can be run with command line arguments as 	java GameEngine/Main.java n a b, where n, a, and b are integers corresponding to
+    * n - number of games to be played
+    * a - int refering to which bot to play as white
+    * b - int refering to which bot to play as black
+  * This will allow for future bot implementations to play against old versions to compare new techniques when developing the bots
+  * Next to implement is
+    * A more advanced bot that doesnt just play a random turnbut instead plays the best move it can find within a depth of 1
+    * A way of evaluating the state of a board into a value to perhaps decide on which moves are best?
