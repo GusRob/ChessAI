@@ -9,8 +9,20 @@ import Bots.*;
 
 enum Player {
   USER,
-  ATHENA,
-  ARES {public Player next(){return USER;};};
+  ATHENA {
+    public Computer create(PieceHandler p, int c){return new Athena(p, c);}
+  },
+  ARTEMIS {
+    public Computer create(PieceHandler p, int c){return new Artemis(p, c);}
+  },
+  ARES {
+    public Player next(){return USER;}
+    public Computer create(PieceHandler p, int c){return new Ares(p, c);}
+  };
+
+  public Computer create(PieceHandler p, int c){
+    return null;
+  }
 
   public Player next() {
     return values()[ordinal() + 1];
@@ -62,13 +74,13 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 
     switch(initBlack){
       case 0: playerBlack = Player.ATHENA; break;
-      case 1: playerBlack = Player.ARES; break;
-      case 2: playerBlack = Player.ATHENA; break;
+      case 1: playerBlack = Player.ARTEMIS; break;
+      case 2: playerBlack = Player.ARES; break;
     }
     switch(initWhite){
       case 0: playerWhite = Player.ATHENA; break;
-      case 1: playerWhite = Player.ARES; break;
-      case 2: playerBlack = Player.ATHENA; break;
+      case 1: playerWhite = Player.ARTEMIS; break;
+      case 2: playerBlack = Player.ARES; break;
     }
 
 		addMouseListener(this);
@@ -390,21 +402,11 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	public boolean getSelecting(){return isSelecting;}
 
   public void startNewGame(){
-    switch(playerBlack){
-      case ATHENA:
-        botBlack = new Athena(pieces, 0);
-       break;
-      case ARES:
-        botBlack = new Ares(pieces, 0);
-       break;
+    if(playerWhite != Player.USER){
+      botWhite = playerWhite.create(pieces, 6);
     }
-    switch(playerWhite){
-      case ATHENA:
-        botWhite = new Athena(pieces, 6);
-       break;
-      case ARES:
-        botWhite = new Ares(pieces, 6);
-       break;
+    if(playerBlack != Player.USER){
+      botBlack = playerBlack.create(pieces, 0);
     }
     isNewGame = false;
     isWhiteTurn = false;
