@@ -1,9 +1,4 @@
-package GameEngine;
-
-import java.awt.*;
-import java.util.*;
-import javax.swing.*;
-
+package Bots;
 
 //interface for the structure of the chess bots
 public interface Computer{

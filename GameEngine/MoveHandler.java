@@ -155,7 +155,7 @@ public class MoveHandler{
 
 	//input - integer square to move to, held piece colour id and qhich square theyre moving from
 	//output - a copy of the current bitBoard with the move being attempted made, used for check detecting
-	private boolean[][] bitBoardsTmp(int square, int heldColor, int heldId, int heldSquare){
+	public boolean[][] bitBoardsTmp(int square, int heldColor, int heldId, int heldSquare){
 		int oppHeldColor = heldColor==0?6:0;
 		boolean[][] resultingBoard = pieces.getBitBoardsCopy();
 

@@ -37,8 +37,8 @@ public class PieceHandler{
 	private boolean isInCheck[] =	{false, false};
 	private boolean isInCheckMate[] =	{false, false};
 
-	Board board;
-	MoveHandler moves = new MoveHandler(this);
+	public Board board;
+	public MoveHandler moves = new MoveHandler(this);
 
 	Image[] pieceImages = new Image[12];
 
@@ -126,7 +126,7 @@ public class PieceHandler{
 	public void setIsInCheckMate(boolean[] newVals){
 		isInCheckMate = newVals;
 	}
-	private void resetHeld(){
+	public void resetHeld(){
 		heldId = -1;
 		heldSquare = -1;
 	}

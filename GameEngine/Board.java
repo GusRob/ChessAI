@@ -5,13 +5,14 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import Bots.*;
 
 enum Player {
   USER,
-  THOTH,
-  THOTH2 {public Player next(){return USER;};};
+  ATHENA,
+  ARES {public Player next(){return USER;};};
 
-	public Player next() {
+  public Player next() {
     return values()[ordinal() + 1];
   }
 }
@@ -31,7 +32,7 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	private int menuHover = -1;
 	private boolean isNewGame = true;
 	private Player playerWhite = Player.USER;
-	private Player playerBlack = Player.THOTH;
+	private Player playerBlack = Player.ATHENA;
   private boolean isPlayerMove = false;
 	private boolean isWhiteAtTop = false;
 	private boolean botGame = false;
@@ -49,8 +50,8 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 	javax.swing.Timer t = new javax.swing.Timer(1, this);
 
 	PieceHandler pieces = new PieceHandler(this);
-	Computer botBlack = new Thoth(pieces, 0);
-	Computer botWhite = new Thoth(pieces, 0);
+	Computer botBlack = new Athena(pieces, 0);
+	Computer botWhite = new Athena(pieces, 0);
 
 	//constructor starts timer t adds mouselistener and calls paint method for first time
 	public Board(int noOfGames, int initBlack, int initWhite){
@@ -60,14 +61,14 @@ public class Board extends JPanel implements MouseListener, ActionListener{
     gamesLeft = noOfGames;
 
     switch(initBlack){
-      case 0: playerBlack = Player.THOTH; break;
-      case 1: playerBlack = Player.THOTH2; break;
-      case 2: playerBlack = Player.THOTH; break;
+      case 0: playerBlack = Player.ATHENA; break;
+      case 1: playerBlack = Player.ARES; break;
+      case 2: playerBlack = Player.ATHENA; break;
     }
     switch(initWhite){
-      case 0: playerWhite = Player.THOTH; break;
-      case 1: playerWhite = Player.THOTH2; break;
-      case 2: playerBlack = Player.THOTH; break;
+      case 0: playerWhite = Player.ATHENA; break;
+      case 1: playerWhite = Player.ARES; break;
+      case 2: playerBlack = Player.ATHENA; break;
     }
 
 		addMouseListener(this);
@@ -390,19 +391,19 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 
   public void startNewGame(){
     switch(playerBlack){
-      case THOTH:
-        botBlack = new Thoth(pieces, 0);
+      case ATHENA:
+        botBlack = new Athena(pieces, 0);
        break;
-      case THOTH2:
-        botBlack = new Thoth(pieces, 0);
+      case ARES:
+        botBlack = new Ares(pieces, 0);
        break;
     }
     switch(playerWhite){
-      case THOTH:
-        botWhite = new Thoth(pieces, 6);
+      case ATHENA:
+        botWhite = new Athena(pieces, 6);
        break;
-      case THOTH2:
-        botWhite = new Thoth(pieces, 6);
+      case ARES:
+        botWhite = new Ares(pieces, 6);
        break;
     }
     isNewGame = false;
@@ -427,9 +428,9 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 		int mouseY = e.getY();
 		if(!isSelecting && !isGameOver && !isMenuOpen &&!isNewGame){
 			if(!isMouseDown){
-				mousePressed(e);
+				//mousePressed(e);
 			} else {
-				mouseReleased(e);
+				//mouseReleased(e);
 			}
 		} else if (!isGameOver && !isMenuOpen && !isNewGame) {
 			if(pieceHover != -1){
@@ -474,7 +475,7 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 			isMenuOpen = !isMenuOpen;
 		}
 	}
-	public void mousePressed(MouseEvent e){
+  public void mousePressed(MouseEvent e){
 		if(!isSelecting && !isGameOver && !isMenuOpen && isPlayerMove){
 			if(!isMouseDown){
 				isMouseDown = true;

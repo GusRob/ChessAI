@@ -1,13 +1,14 @@
-package GameEngine;
+package Bots;
 
 import java.awt.*;
 import java.util.*;
 import javax.swing.*;
+import GameEngine.*;
 
 
 
 //class is used to make moves as a computer controlled opponent
-public class Thoth implements Computer{
+public class Ares implements Computer{
 
 	private PieceHandler pieces;
 
@@ -15,7 +16,7 @@ public class Thoth implements Computer{
 
 	private int[][] moves = new int[100][2];
 
-	public Thoth(PieceHandler init_pieces, int init_color){
+	public Ares(PieceHandler init_pieces, int init_color){
 		pieces = init_pieces;
     color = init_color;
 	}
