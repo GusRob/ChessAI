@@ -6,6 +6,13 @@
   *  - [ ] Evolve the cpu opponent to use more and more advanced concepts and as such be harder to beat
   *  - [ ] Allow the user to decide the difficulty of the game by deciding search depth and time limit
 
+## Bot List
+
+Bot Name | Playstyle | Difficulty | Process
+ :---:|:---:|:---:|:---:
+**Aries** | Captures whenever possible | None | Generates move list, if any moves capture pieces clips list to those moves, and chooses randomly from list
+**Athena** | Captures whenever possible and takes the highest scoring piece | Easy | Same as Aries but further clips list to that which leaves the lowest opponent score
+
 ## Milestone Log
 
 2021/01/02
