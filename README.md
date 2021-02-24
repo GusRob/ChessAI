@@ -11,7 +11,8 @@
 Bot Name | Playstyle | Difficulty | Process
  :---:|:---:|:---:|:---:
 **Aries** | Captures whenever possible | None | Generates move list, if any moves capture pieces clips list to those moves, and chooses randomly from list
-**Athena** | Captures whenever possible and takes the highest scoring piece | Easy | Same as Aries but further clips list to that which leaves the lowest opponent score
+**Artemis** | Captures whenever possible and takes the highest scoring piece | Easy | Same as Aries but further clips list to that which leaves the lowest opponent score
+**Athena** | Calcs 1 move ahead to capture most pieces | Easy | Same as Artemis but for each move calculates opponents response (visualising opponent as artemis)
 
 ## Milestone Log
 
