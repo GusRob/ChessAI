@@ -28,19 +28,20 @@ public class Artemis implements Computer{
   }
 
   public int[] chooseMove(){
-		int z = valueBoard(pieces.getBitBoardsCopy());
 		int n = 0;
     int[] result = new int[2];
     for(int i = 0; i < 64; i++){
+			System.out.println("open 4");
       int pieceColor = pieces.getPieceColor(i);
+			System.out.println("close 4");
       int pieceId = pieces.getPieceId(i);
       if(pieceId != -1 && pieceColor == color){
         for(int j = 0; j<64; j++){
-          if(pieces.moves.validateTurn(j, i)){
+          if(pieces.moves.validateTurn(j, i, pieces.getBitBoardsCopy())){
 						if(n < 100){
             	moves[n][0] = i;
             	moves[n][1] = j;
-							boolean[][] bitBoards_tmp = pieces.moves.bitBoardsTmp(j, color, pieceId, i);
+							boolean[][] bitBoards_tmp = pieces.moves.bitBoardsTmp(j, color, pieceId, i, pieces.getBitBoardsCopy());
 							moves[n][2] = valueBoard(bitBoards_tmp);
 							n++;
 						}
@@ -51,7 +52,10 @@ public class Artemis implements Computer{
 		System.out.println("found " + n + " moves");
 		int a = 0;
 		for(int i = 0; i < n; i++){
+			System.out.println("open 5");
 			int col = pieces.getPieceColor(moves[i][1]);
+			System.out.println("close 5");
+
 			if(col == ((color==0)?6:0)){
 				moves[a] = moves[i];
 				a++;
@@ -120,7 +124,9 @@ public class Artemis implements Computer{
 		int whPieceScore = 0;
 		for(int i = 0; i <64; i++){
 			int pieceId = pieces.getPieceId(i, bitBoardsTmp);
+			System.out.println("open 6");
 			int pieceCol = pieces.getPieceColor(i, bitBoardsTmp);
+			System.out.println("close 6");
 			if(pieceId != -1 && pieceId != 0 && pieceId != 6){ //all pieces except kings
 				if(pieceId == 4+pieceCol){ //queen
 					blPieceScore += (pieceCol==0?9:0);

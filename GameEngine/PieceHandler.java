@@ -171,8 +171,8 @@ public class PieceHandler{
 	//function to call the movehandler checkmate and respond accordingly
 	public void queryCheckmate(){
 		board.repaint();
-		boolean isBlackAbleToMove = moves.ableToMove(0);
-		boolean isWhiteAbleToMove = moves.ableToMove(6);
+		boolean isBlackAbleToMove = moves.ableToMove(0, getBitBoardsCopy());
+		boolean isWhiteAbleToMove = moves.ableToMove(6, getBitBoardsCopy());
 		isInCheckMate[0] = !isBlackAbleToMove && isInCheck[0];
 		isInCheckMate[1] = !isWhiteAbleToMove && isInCheck[1];
 		boolean isTie = (!board.getTurn() && !isBlackAbleToMove && !isInCheck[0]) || (board.getTurn() && !isWhiteAbleToMove && !isInCheck[0]);
@@ -205,7 +205,7 @@ public class PieceHandler{
 	public boolean placeHeld(int square){
 		boolean result = false;
 		 int turn = board.getTurn()?0:1;
-		if(moves.validateTurn(square, heldSquare)){
+		if(moves.validateTurn(square, heldSquare, getBitBoardsCopy())){
 			movePiece(square);
 			boolean[] pReset = new boolean[8];
 			passant[turn] = pReset;
@@ -256,7 +256,7 @@ public class PieceHandler{
 	//method for use when testing a potential move
 	public int getPieceColor(int square, boolean[][] bitBoards_tmp){
 		if(bitBoards_tmp[0][square] && bitBoards_tmp[6][square]){
-			System.exit(0x01);
+			//System.exit(0x01);
 		}
 		int result = -1;
 		if(bitBoards_tmp[0][square]){

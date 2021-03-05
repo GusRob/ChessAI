@@ -308,8 +308,8 @@ public class Board extends JPanel implements MouseListener, ActionListener{
     } else if(checkStr.equals("Black Wins!")){
       wins[0]++;
     }
-    gamesLeft--;
     if(gamesLeft > 0){
+      gamesLeft--;
       isNewGame = true;
       pieces.resetAll();
       isWhiteTurn = true;

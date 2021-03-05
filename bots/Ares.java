@@ -35,7 +35,7 @@ public class Ares implements Computer{
       int pieceId = pieces.getPieceId(i);
       if(pieceId != -1 && pieceColor == color){
         for(int j = 0; j<64; j++){
-          if(pieces.moves.validateTurn(j, i)){
+          if(pieces.moves.validateTurn(j, i, pieces.getBitBoardsCopy())){
 						if(n < 100){
             	moves[n][0] = i;
             	moves[n][1] = j;

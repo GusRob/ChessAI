@@ -14,7 +14,7 @@ public class Athena implements Computer{
 
   private int color;
 
-	private int[][] moves = new int[100][3];
+	private ArrayList<int[]> moves = new ArrayList<int[]>();
 
 	public Athena(PieceHandler init_pieces, int init_color){
 		pieces = init_pieces;
@@ -28,73 +28,128 @@ public class Athena implements Computer{
   }
 
   public int[] chooseMove(){
-		int z = valueBoard(pieces.getBitBoardsCopy());
-		int n = 0;
     int[] result = new int[2];
-    for(int i = 0; i < 64; i++){
-      int pieceColor = pieces.getPieceColor(i);
-      int pieceId = pieces.getPieceId(i);
-      if(pieceId != -1 && pieceColor == color){
+		boolean[][] bitBoardsCopy = pieces.getBitBoardsCopy();
+    moves = getAllMoves(bitBoardsCopy, color);
+		System.out.println("found " + moves.size() + " moves");
+		moves = reduce(moves, bitBoardsCopy, color);
+		System.out.println("reduced to " + moves.size());
+		moves = reduceToMax(color==0?false:true, moves);
+		System.out.println("further to " + moves.size());
+		moves = fillResponse();
+		System.out.println("now it is " + moves.size());
+		int resultIndex = 0;
+		boolean problem = false;
+		if(moves.size() == 0){
+			pieces.queryCheckmate();
+			problem = true;
+		} else {
+			System.out.println("calculating safest moves");
+			resultIndex = chooseMaxVal(color==0?true:false, moves, 3);
+		}
+		int[] defaultVal = {-1, -1};
+		result = moves.get(resultIndex);
+		System.out.println("chosen move is " + result[0] + " to " + result[1]);
+    return problem?defaultVal:result;
+  }
+
+	private ArrayList<int[]> fillResponse(){
+		ArrayList<int[]> result = new ArrayList<int[]>();
+		for(int[] move : moves){
+			boolean[][] bitBoards_tmp = pieces.moves.bitBoardsTmp(move[1], color, pieces.getPieceId(move[0]), move[0], pieces.getBitBoardsCopy());
+			move[3] = getResponse(bitBoards_tmp);
+			result.add(move);
+		}
+		return result;
+	}
+
+	//get the value of the opponent's responding move [Artemis]
+	private int getResponse(boolean[][] bitBoards_tmp){
+		int result = 0;
+		ArrayList<int[]> oppMoves = new ArrayList<int[]>();
+		oppMoves = getAllMoves(bitBoards_tmp, color);
+		oppMoves = reduce(moves, bitBoards_tmp, color);
+		oppMoves = reduceToMax(color==0?false:true, oppMoves);
+		if(oppMoves.size() == 0){
+			result = color==0?-100:100;
+		} else {
+			int[] move = oppMoves.get(0);
+			boolean[][] bitBoards_tmp2 = pieces.moves.bitBoardsTmp(move[1], color==0?6:0, pieces.getPieceId(move[0]), move[0], bitBoards_tmp);
+			result = valueBoard(bitBoards_tmp2);
+		}
+		return result;
+	}
+
+	//reduce the arraylist of moves to only moves that capture pieces [if there are any]
+	private ArrayList<int[]> reduce(ArrayList<int[]> input, boolean[][] bitBoards, int colorFor){
+		ArrayList<int[]> result = new ArrayList<int[]>();
+		for(int[] move : input){
+			int colOnSq = pieces.getPieceColor(move[1], bitBoards);
+			if(colOnSq == ((colorFor==0)?6:0)){
+				result.add(move);
+			}
+		}
+		if(result.size() == 0){
+			result = input;
+		} else {
+		}
+		return result;
+	}
+
+	//generates an arraylist of moves for the given colour within the given bitBoards
+	private ArrayList<int[]> getAllMoves(boolean[][] bitBoards, int colorFor){
+		ArrayList<int[]> result = new ArrayList<int[]>();
+		for(int i = 0; i < 64; i++){
+      int pieceColor = pieces.getPieceColor(i, bitBoards);
+      int pieceId = pieces.getPieceId(i, bitBoards);
+      if(pieceId != -1 && pieceColor == colorFor){
         for(int j = 0; j<64; j++){
-          if(pieces.moves.validateTurn(j, i)){
-						if(n < 100){
-            	moves[n][0] = i;
-            	moves[n][1] = j;
-							boolean[][] bitBoards_tmp = pieces.moves.bitBoardsTmp(j, color, pieceId, i);
-							moves[n][2] = valueBoard(bitBoards_tmp);
-							n++;
-						}
+          if(pieces.moves.validateTurn(j, i, bitBoards)){
+						int[] newMove = new int[4];
+						newMove[0] = i;
+            newMove[1] = j;
+						boolean[][] bitBoards_tmp = pieces.moves.bitBoardsTmp(j, colorFor, pieceId, i, bitBoards);
+						newMove[2] = valueBoard(bitBoards_tmp);
+						newMove[3] = colorFor==0?-99:99;
+						result.add(newMove);
           }
         }
       }
     }
-		System.out.println("found " + n + " moves");
-		int a = 0;
-		for(int i = 0; i < n; i++){
-			int col = pieces.getPieceColor(moves[i][1]);
-			if(col == ((color==0)?6:0)){
-				moves[a] = moves[i];
-				a++;
-			}
-		}
-		if(a != 0){
-			n = a;
-			System.out.println("cut to " + n + " moves");
-		}
-		int resultIndex = 0;
-		boolean problem = false;
-		if(n == 0){
-			pieces.queryCheckmate();
-			problem = true;
-		} else {
-			resultIndex = chooseMaxVal(n, color==0?false:true);
-		}
-		int[] defaultVal = {-1, -1};
-		System.out.println("chosen move is " + moves[resultIndex][0] + " to " + moves[resultIndex][1]);
-    return problem?defaultVal:moves[resultIndex];
-  }
+    return result;
+	}
 
-	private int chooseMaxVal(int n, boolean high){
+	//calls maxIndex and chooses a random value from the resulting array
+	private int chooseMaxVal(boolean high, ArrayList<int[]> input, int val){
 		Random r = new Random();
 		int randomInt = 0;
-		int[] maxVals = maxIndex(n, high);
+		int[] maxVals = maxIndex(high, input, val);
 		randomInt = r.nextInt(maxVals.length);
 		return maxVals[randomInt];
 	}
 
+	private ArrayList<int[]> reduceToMax(boolean high, ArrayList<int[]> input){
+		int[] maxVals = maxIndex(high, input, 2);
+		ArrayList<int[]> result = new ArrayList<int[]>();
+		for(int i = 0; i < maxVals.length; i++){
+			result.add(input.get(maxVals[i]));
+		}
+		return result;
+	}
+
 	//gives the index of the move with the highest stored value
-	private int[] maxIndex(int n, boolean high){
-		int highest = moves[0][2];
-		int sameValMoves = 1;
-		for(int i = 1; i < n; i++){
-			if(high && moves[i][2] != highest){
-				if(moves[i][2] > highest){
-					highest = moves[i][2];
+	private int[] maxIndex(boolean high, ArrayList<int[]> input, int val){
+		int highest = high?-99:99;
+		int sameValMoves = 0;
+		for(int[] move : input){
+			if(high && move[val] != highest){
+				if(move[val] > highest){
+					highest = move[val];
 					sameValMoves = 1;
 				}
-			} else if (moves[i][2] != highest) {
-				if(moves[i][2] < highest){
-					highest = moves[i][2];
+			} else if (move[val] != highest) {
+				if(move[val] < highest){
+					highest = move[val];
 					sameValMoves = 1;
 				}
 			} else {
@@ -103,13 +158,12 @@ public class Athena implements Computer{
 		}
 		int[] result = new int[sameValMoves];
 		int j = 0;
-		for(int i = 0; i < n; i++){
-			if(moves[i][2] == highest){
-				result[j] = i;
+		for(int[] move : input){
+			if(move[val] == highest){
+				result[j] = input.indexOf(move);
 				j++;
 			}
 		}
-		System.out.println("cut to " + sameValMoves + " moves");
 		return result;
 	}
 
@@ -135,7 +189,6 @@ public class Athena implements Computer{
 					blPieceScore += (pieceCol==0?1:0);
 					whPieceScore += (pieceCol==6?1:0);
 				} else {
-					System.out.println(pieceId);
 					System.exit(0x21);
 				}
 			}

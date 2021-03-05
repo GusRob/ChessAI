@@ -104,14 +104,14 @@ public class MoveHandler{
 	//IMPORTANT
 	//input - the integer colour to detect checkmates for
 	//output - boolean, true if there is a possible move false otherwise
-	public boolean ableToMove(int color){
+	public boolean ableToMove(int color, boolean[][] bitBoards){
 		boolean result = false;
 		for(int i = 0; i < 64 && !result; i++){
-			int pieceColor = pieces.getPieceColor(i);
-			int pieceId = pieces.getPieceId(i);
+			int pieceColor = pieces.getPieceColor(i, bitBoards);
+			int pieceId = pieces.getPieceId(i, bitBoards);
 			if(pieceId != -1 && (pieceColor == color)){
 				for(int j = 0; j < 64 && !result; j++){
-					if(validateTurn(j, i)){
+					if(validateTurn(j, i, bitBoards)){
 						result = true;
 					}
 				}
@@ -122,32 +122,32 @@ public class MoveHandler{
 
 	//input - square that the held piece, stored in this classes reference to piecehandler is to move to
 	//output - true if that move is legal, false if that move isnt
-	public boolean validateTurn(int square, int heldSquare){
+	public boolean validateTurn(int square, int heldSquare, boolean[][] bitBoards){
 		boolean result = true;
 		int turn = pieces.board.getTurn()?6:0;
-		int heldColor = pieces.getPieceColor(heldSquare);
-		int heldId = pieces.getPieceId(heldSquare);
-		if(square == heldSquare || heldColor == pieces.getPieceColor(square)){ //basic move laws
+		int heldColor = pieces.getPieceColor(heldSquare, bitBoards);
+		int heldId = pieces.getPieceId(heldSquare, bitBoards);
+		if(square == heldSquare || heldColor == pieces.getPieceColor(square, bitBoards)){ //basic move laws
 			result = false;
 		}
 		//specific piece movement laws
 		if(result){
 			if(heldId == 5 || heldId == 11){
-				result = result && validatePawn(square, heldSquare, heldColor);
+				result = result && validatePawn(square, heldSquare, heldColor, bitBoards);
 			} else if(heldId == 4 || heldId == 10){
-				result = result && validateQueen(square, heldSquare);
+				result = result && validateQueen(square, heldSquare, bitBoards);
 			} else if(heldId == 3 || heldId == 9){
-				result = result && validateBishop(square, heldSquare);
+				result = result && validateBishop(square, heldSquare, bitBoards);
 			} else if(heldId == 2 || heldId == 8){
-				result = result && validateKnight(square, heldSquare);
+				result = result && validateKnight(square, heldSquare, bitBoards);
 			} else if(heldId == 1 || heldId == 7){
-				result = result && validateRook(square, heldSquare);
+				result = result && validateRook(square, heldSquare, bitBoards);
 			} else if(heldId == 0 || heldId == 6){
-				result = result && validateKing(square, heldSquare, heldColor);
+				result = result && validateKing(square, heldSquare, heldColor, bitBoards);
 			}
 		}
 		if(result){
-			boolean[][] resultingBoard = bitBoardsTmp(square, heldColor, heldId, heldSquare);
+			boolean[][] resultingBoard = bitBoardsTmp(square, heldColor, heldId, heldSquare, bitBoards);
 			result = result && !check(heldColor, resultingBoard); //check if the piece is in check after move
 		}
 		return result;
@@ -155,9 +155,14 @@ public class MoveHandler{
 
 	//input - integer square to move to, held piece colour id and qhich square theyre moving from
 	//output - a copy of the current bitBoard with the move being attempted made, used for check detecting
-	public boolean[][] bitBoardsTmp(int square, int heldColor, int heldId, int heldSquare){
+	public boolean[][] bitBoardsTmp(int square, int heldColor, int heldId, int heldSquare, boolean[][] bitBoards){
 		int oppHeldColor = heldColor==0?6:0;
-		boolean[][] resultingBoard = pieces.getBitBoardsCopy();
+		boolean[][] resultingBoard = new boolean[12][64];
+		for(int i = 0; i<12; i++){
+			for(int j = 0; j < 64; j++){
+				resultingBoard[i][j] = bitBoards[i][j];
+			}
+		}
 
 		if(resultingBoard[oppHeldColor][square]){
 			for(int i = 0; i < 6; i++){
@@ -174,22 +179,22 @@ public class MoveHandler{
 	//functions for specific piece moves
 	//input - square piece is moving to, from, and, where necessary the colour of the pieces
 	//output - a boolean answering can the piece make that move
-	private boolean validatePawn(int squareTo, int squareFrom, int color){
+	private boolean validatePawn(int squareTo, int squareFrom, int color, boolean[][] bitBoards){
 		boolean result = false;
 		int direction = color==0?1:-1; //if white - direction pos // if black - direction neg
 		int oppColor = color==0?6:0;
 		if(squareTo == squareFrom + 8*direction){
-			if(pieces.getPieceColor(squareTo) == -1){
+			if(pieces.getPieceColor(squareTo, bitBoards) == -1){
 				// if move is one square forwards && square is empty
 				result = true;
 			} else {result = false;}
 		} else if(squareTo == squareFrom + 16*direction){
-			if(pieces.getPieceColor(squareTo) == -1 && pieces.getPieceColor(squareFrom+8*direction) == -1 && (int)(squareFrom/8) == (color==0?1:6)){
+			if(pieces.getPieceColor(squareTo, bitBoards) == -1 && pieces.getPieceColor(squareFrom+8*direction, bitBoards) == -1 && (int)(squareFrom/8) == (color==0?1:6)){
 				// if move is two squares forwards && both squares are empty && piece is moving from second rank on their side
 				result = true;
 			} else {result = false;}
 		} else if((squareTo == squareFrom + 8*direction + 1 && (int)(squareFrom/8) ==(int)((squareFrom+1)/8)) || squareTo == squareFrom + 8*direction - 1 && (int)(squareFrom/8) ==(int)((squareFrom-1)/8)){
-			if(pieces.getPieceColor(squareTo) == oppColor){
+			if(pieces.getPieceColor(squareTo, bitBoards) == oppColor){
 				//if move is a forward diagonal, and square contains an opponent piece
 				result = true;
 			} else if(pieces.getPassant(oppColor==0?0:1,squareTo%8)){
@@ -199,7 +204,7 @@ public class MoveHandler{
 		return result;
 	}
 
-	private boolean validateKnight(int squareTo, int squareFrom){
+	private boolean validateKnight(int squareTo, int squareFrom, boolean[][] bitBoards){
 		boolean result = false;
 		int xDiff = Math.abs( squareTo%8 - squareFrom%8 );
 		int yDiff = Math.abs( (int)(squareTo/8) - (int)(squareFrom/8) );
@@ -212,7 +217,7 @@ public class MoveHandler{
 		return result;
 	}
 
-	private boolean validateBishop(int squareTo, int squareFrom){
+	private boolean validateBishop(int squareTo, int squareFrom, boolean[][] bitBoards){
 		boolean result = false;
 		int xDiff = Math.abs( squareTo%8 - squareFrom%8 );
 		int yDiff = Math.abs( (int)(squareTo/8) - (int)(squareFrom/8) );
@@ -222,7 +227,7 @@ public class MoveHandler{
 			result = true;
 			for(int i = 1; i<xDiff; i++){
 				int midSquare = squareFrom+xDirection*i+yDirection*8*i;
-				if(pieces.getPieceColor(midSquare) != -1){
+				if(pieces.getPieceColor(midSquare, bitBoards) != -1){
 					result = false;
 				}
 			}
@@ -230,7 +235,7 @@ public class MoveHandler{
 		return result;
 	}
 
-	private boolean validateRook(int squareTo, int squareFrom){
+	private boolean validateRook(int squareTo, int squareFrom, boolean[][] bitBoards){
 		boolean result = false;
 		int xDiff = Math.abs( squareTo%8 - squareFrom%8 );
 		int yDiff = Math.abs( (int)(squareTo/8) - (int)(squareFrom/8) );
@@ -240,7 +245,7 @@ public class MoveHandler{
 			result = true;
 			for(int i = 1; i<Math.max(xDiff, yDiff); i++){
 				int midSquare = squareFrom+xDirection*i+yDirection*8*i;
-				if(pieces.getPieceColor(midSquare) != -1){
+				if(pieces.getPieceColor(midSquare, bitBoards) != -1){
 					result = false;
 				}
 			}
@@ -248,7 +253,7 @@ public class MoveHandler{
 		return result;
 	}
 
-	private boolean validateKing(int squareTo, int squareFrom, int color){
+	private boolean validateKing(int squareTo, int squareFrom, int color, boolean[][] bitBoards){
 		boolean result = false;
 		int xDiff = Math.abs( squareTo%8 - squareFrom%8 );
 		int yDiff = Math.abs( (int)(squareTo/8) - (int)(squareFrom/8) );
@@ -259,7 +264,7 @@ public class MoveHandler{
 			if(pieces.getCastles(color==0?0:1, direction==1?1:0)){
 				boolean isAnyPiecesBetween = false;
 				for(int i = 1; i < Math.abs(squareFrom-squareTo); i++){
-					int midSqCol = pieces.getPieceId(squareFrom+(i*direction));
+					int midSqCol = pieces.getPieceId(squareFrom+(i*direction), bitBoards);
 					if( midSqCol  != -1 ){
 						isAnyPiecesBetween = true;
 						result = false;
@@ -267,9 +272,9 @@ public class MoveHandler{
 					}
 				}
 				if(!isAnyPiecesBetween){
-					boolean[][] bitBoards_tmp1 = bitBoardsTmp(squareTo, color, color, squareFrom);
-					boolean[][] bitBoards_tmp2 = bitBoardsTmp(squareFrom + direction, color, color, squareFrom);
-					boolean[][] bitBoards_tmp3 = bitBoardsTmp(squareFrom, color, color, squareFrom);
+					boolean[][] bitBoards_tmp1 = bitBoardsTmp(squareTo, color, color, squareFrom, bitBoards);
+					boolean[][] bitBoards_tmp2 = bitBoardsTmp(squareFrom + direction, color, color, squareFrom, bitBoards);
+					boolean[][] bitBoards_tmp3 = bitBoardsTmp(squareFrom, color, color, squareFrom, bitBoards);
 					boolean check1 = check(color, bitBoards_tmp1);
 					boolean check2 = check(color, bitBoards_tmp2);
 					boolean check3 = check(color, bitBoards_tmp2);
@@ -280,8 +285,8 @@ public class MoveHandler{
 		return result;
 	}
 
-	private boolean validateQueen(int squareTo, int squareFrom){
-		return validateBishop(squareTo, squareFrom) || validateRook(squareTo, squareFrom);
+	private boolean validateQueen(int squareTo, int squareFrom, boolean[][] bitBoards){
+		return validateBishop(squareTo, squareFrom, bitBoards) || validateRook(squareTo, squareFrom, bitBoards);
 	}
 
 
