@@ -86,3 +86,11 @@ Bot Name | Playstyle | Difficulty | Process
   * Next to implement is
     * A more advanced bot that doesnt just play a random turnbut instead plays the best move it can find within a depth of 1
     * A way of evaluating the state of a board into a value to perhaps decide on which moves are best?
+
+2021/03/25
+  * Added bots to include Dionysus
+  * Will start developing Athena to use the minimax algorithm
+    * Athena will then have controllable depth of search
+  * Still need to improve algorithm to establish board value \[maybe explore counting spaces being attacked?\]
+  * In bitBoardExt branch, developed main engine so that the bitBoards array contains all board information now, e.g. castling and en passant flags
+  * This should provide more information to the chess bots, as well as simplifying program
