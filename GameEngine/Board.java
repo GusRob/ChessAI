@@ -12,6 +12,9 @@ enum Player {
   ATHENA {
     public Computer create(PieceHandler p, int c){return new Athena(p, c);}
   },
+  DIONYSUS {
+    public Computer create(PieceHandler p, int c){return new Dionysus(p, c);}
+  },
   ARTEMIS {
     public Computer create(PieceHandler p, int c){return new Artemis(p, c);}
   },
@@ -74,13 +77,15 @@ public class Board extends JPanel implements MouseListener, ActionListener{
 
     switch(initBlack){
       case 0: playerBlack = Player.ATHENA; break;
-      case 1: playerBlack = Player.ARTEMIS; break;
-      case 2: playerBlack = Player.ARES; break;
+      case 1: playerBlack = Player.DIONYSUS; break;
+      case 2: playerBlack = Player.ARTEMIS; break;
+      case 3: playerBlack = Player.ARES; break;
     }
     switch(initWhite){
       case 0: playerWhite = Player.ATHENA; break;
-      case 1: playerWhite = Player.ARTEMIS; break;
-      case 2: playerBlack = Player.ARES; break;
+      case 1: playerWhite = Player.DIONYSUS; break;
+      case 2: playerWhite = Player.ARTEMIS; break;
+      case 3: playerBlack = Player.ARES; break;
     }
 
 		addMouseListener(this);

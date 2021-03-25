@@ -11,7 +11,13 @@ public class PieceHandler{
 	// in order of arrays - Black Pieces; rooks; knights; bishops; queens; pawns; White Pieces; same order
 	//				pieceIds Black				0				1				2				3				4				5				blackKing is 0 also
 	//				pieceIds White				6				7				8				9				10			11			whiteKing is 6 also
-	public boolean bitBoards[][] = new boolean[12][64];
+	// final bitBoard array is for further board info:
+	//	bits 0-15 are for passant flags, one for each pawn [first 8 are for black, second for white] [1 means passant is available]
+	//  bits 16-19 are for castles flags, one for each rook [left then right, black then white] [1 means castling is unavailable]
+	//  bits 20 and 21 are for check flags [20 is black, 21 is white] [1 means that colour is in check]
+	//  bits 22 and 23 are for checkmate flags [22 is black, 23 is white] [1 means that colour is in checkmate]
+	//  bit 24 is for stalemates [1 represents a stalemate]
+	public boolean bitBoards[][] = new boolean[13][64];
 
 	//king squares, an entire bitboard isnt needed because there can only be one
 	private int blKing = 4;
@@ -20,15 +26,6 @@ public class PieceHandler{
 	//held piece values
 	private int heldId = -1;
 	private int heldSquare = -1;
-
-	//flags to represent castling - if the king moves both are set to false, if a rook moves the corr. is
-	//		addressed by castles[colour][side]	where black = 0 white = 1, left = 0, right = 1
-	//		left and right will be according to the user's perspective on the screen
-	private boolean castles[][] =	{{true, true}, {true, true}};
-
-	//flags to represent if an en passant capture can take place
-	//		addressed by passant[col][file] where black = 0 white = 1 and file corresponds to the column of the pawn to be taken
-	private boolean passant[][] =	new boolean[2][8];
 
 	//promotion selection is the id of the selected piece
 	private int proSelectId = -1;
@@ -101,13 +98,13 @@ public class PieceHandler{
 	public int getKing(int col){return (col==0?blKing:whKing);}
 	public int getBlKing(){return blKing;}
 	public int getWhKing(){return whKing;}
-	public boolean getPassant(int a, int b){return passant[a][b];}
-	public boolean getCastles(int a, int b){return castles[a][b];}
+	public boolean getPassant(int a, int b){return bitBoards[12][a*8+b];}
+	public boolean getCastles(int a, int b){return bitBoards[12][16+a*2+b];}
 
 	//function to return a bitBoard duplicate to allow check tested etc without editting current board
 	public boolean[][] getBitBoardsCopy(){
-		boolean[][] result = new boolean[12][64];
-		for(int i = 0; i<12; i++){
+		boolean[][] result = new boolean[13][64];
+		for(int i = 0; i<13; i++){
 			for(int j = 0; j < 64; j++){
 				result[i][j] = bitBoards[i][j];
 			}
@@ -151,13 +148,6 @@ public class PieceHandler{
 		whKing = 60;
 		heldId = -1;
 		heldSquare = -1;
-		castles[0][0] =	true;
-		castles[0][1] =	true;
-		castles[1][0] =	true;
-		castles[1][1] =	true;
-		passant =	new boolean[2][8];
-		isInCheck =	new boolean[2];
-		isInCheckMate =	new boolean[2];
 		setupBoard();
 	}
 
@@ -207,8 +197,9 @@ public class PieceHandler{
 		 int turn = board.getTurn()?0:1;
 		if(moves.validateTurn(square, heldSquare, getBitBoardsCopy())){
 			movePiece(square);
-			boolean[] pReset = new boolean[8];
-			passant[turn] = pReset;
+			for(int i = 0; i < 8; i++){
+				bitBoards[12][turn*8+i] = false;
+			}
 			int promotingFile = promotionAvail(turn);
 			if(promotingFile != -1){
 				board.requestSelection();
@@ -324,16 +315,16 @@ public class PieceHandler{
 					}
 				}
 				if(square == heldSquare + 16*direction){ // if move is double opening move allow passant for one turn
-					passant[turn==0?0:1][square%8] = true;
+					bitBoards[12][(turn==0?0:8)+(square%8)] = true;
 				}
 			}
 		}
 		//castle move
-		int castleIndex = turn==0?0:1;
-		if(castles[castleIndex][0] || castles[castleIndex][1]){ // if moving colour is able to castle
+		int castleIndex = turn==0?0:2;
+		if(bitBoards[12][castleIndex] || bitBoards[12][castleIndex + 1]){ // if moving colour is able to castle
 			if(heldId == turn){ // if piece is a king
-				castles[castleIndex][0] = false;
-				castles[castleIndex][1] = false;
+				bitBoards[12][castleIndex] = false;
+				bitBoards[12][castleIndex + 1] = false;
 				if(Math.abs(heldSquare-square) == 2){//if king moving LorR 2
 					int direction = (square>heldSquare)?-1:1;//1 for left, -1 for right
 					int corner = (square>heldSquare)?7:0;//0 for left, 7 for right
@@ -342,13 +333,13 @@ public class PieceHandler{
 					//move rook
 					bitBoards[turn+1][rookSq] = false;
 					bitBoards[turn+1][rookSq] = false;
-					setPieceId(square+direction, turn+1);
+					setPieceId(square+direction, heldId+1);
 				}
 			} else if (heldId == 1 + turn){ // if piece is a rook
 				if((turn/6)*56 == heldSquare){ // left side rook
-					castles[castleIndex][0] = false;
+					bitBoards[12][castleIndex] = false;
 				} else if (7+((turn/6)*56) == heldSquare){ // right side rook
-					castles[castleIndex][1] = false;
+					bitBoards[12][castleIndex +1] = false;
 				}
 			}
 		}
@@ -408,7 +399,7 @@ public class PieceHandler{
 
 	//function called upon pieceHandler instantiation to populate bitboards with set of pieces
 	private void setupBoard(){
-		bitBoards = new boolean[12][64];
+		bitBoards = new boolean[13][64];
 		//populate bitBoards
 		for(int i = 8; i < 16; i++){
 			bitBoards[5][i] = true;		//black pawns
@@ -430,6 +421,10 @@ public class PieceHandler{
 		bitBoards[9][61] = true;
 		bitBoards[4][3] = true; //queens
 		bitBoards[10][59] = true;
+
+		for(int i = 0; i < 4; i++){
+			bitBoards[12][16 + i] = true; //castling flags
+		}
 
 		generateColorSets();
 	}

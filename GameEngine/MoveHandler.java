@@ -157,8 +157,8 @@ public class MoveHandler{
 	//output - a copy of the current bitBoard with the move being attempted made, used for check detecting
 	public boolean[][] bitBoardsTmp(int square, int heldColor, int heldId, int heldSquare, boolean[][] bitBoards){
 		int oppHeldColor = heldColor==0?6:0;
-		boolean[][] resultingBoard = new boolean[12][64];
-		for(int i = 0; i<12; i++){
+		boolean[][] resultingBoard = new boolean[13][64];
+		for(int i = 0; i<13; i++){
 			for(int j = 0; j < 64; j++){
 				resultingBoard[i][j] = bitBoards[i][j];
 			}
