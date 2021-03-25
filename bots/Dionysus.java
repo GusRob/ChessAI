@@ -25,7 +25,7 @@ public class Dionysus implements Computer{
 
   public int choosePromotion(){
     return 0;
-  } 
+  }
 
   public int[] chooseMove(){
     int[] result = new int[2];
