@@ -28,7 +28,8 @@ public class Athena implements Computer{
   }
 
   public int[] chooseMove(){
-		return [0,0]
+		int[] result = new int[2];
+		return result;
   }
 
 }
